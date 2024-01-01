@@ -1,0 +1,8 @@
+/curl
+/curl-wasm
+/openssl
+/openssl-wasm
+/srelay*
+/websockify
+/a.out*
+/cacert.pem

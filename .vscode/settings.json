@@ -1,0 +1,5 @@
+{
+  "clangd.fallbackFlags": [
+    "-I/usr/share/emscripten/cache/sysroot/include/"
+  ]
+}

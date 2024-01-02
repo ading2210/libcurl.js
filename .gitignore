@@ -1,8 +1,6 @@
-/curl
-/curl-wasm
-/openssl
-/openssl-wasm
+/client/build
+/client/out
+/client/cacert.pem
+/client/libcurl.data
 /srelay*
 /websockify
-/a.out*
-/cacert.pem

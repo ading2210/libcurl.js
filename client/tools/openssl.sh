@@ -3,7 +3,7 @@
 #compile openssl for use with emscripten
 
 CORE_COUNT=$(nproc --all)
-PREFIX=$(realpath openssl-wasm)
+PREFIX=$(realpath build/openssl-wasm)
 mkdir -p $PREFIX
 
 rm -rf openssl

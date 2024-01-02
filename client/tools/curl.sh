@@ -3,8 +3,8 @@
 #compile openssl for use with emscripten
 
 CORE_COUNT=$(nproc --all)
-PREFIX=$(realpath curl-wasm)
-OPENSSL_PREFIX=$(realpath openssl-wasm)
+PREFIX=$(realpath build/curl-wasm)
+OPENSSL_PREFIX=$(realpath build/openssl-wasm)
 mkdir -p $PREFIX
 
 rm -rf curl

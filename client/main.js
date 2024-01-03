@@ -5,6 +5,29 @@ function allocate_str(str) {
   return allocate(intArrayFromString(str), ALLOC_NORMAL);
 }
 
+//make emscripten shut up about unsupported syscalls
+function silence_errs() {
+  let is_str = obj => typeof obj === 'string' || obj instanceof String;
+
+  window._err = window.err;
+  window.err = function() {
+    let arg = arguments[0];
+    if (is_str(arg) && arg.startsWith("__syscall_getsockname")) {
+      return;
+    }
+    window._err(...arguments);
+  }
+
+  window._console_error = window.console.error;
+  window.console.error = function() {
+    let arg = arguments[0];
+    if (is_str(arg) && arg === "warning: unsupported syscall: __syscall_setsockopt\n") {
+      return;
+    }
+    window._console_error(...arguments);
+  }
+}
+
 //low level interface with c code
 function perform_request(url, js_data_callback, js_end_callback) {
   let end_callback_ptr;
@@ -41,19 +64,24 @@ function merge_arrays(arrays) {
   return new_array;
 }
 
-async function main() {
-  let chunks = [];
-  perform_request("https://ading.dev", (new_data) => {
-    chunks.push(new_data);
-  }, () => {
-    for (let chunk of chunks) {
-      console.log(chunk);
+function libcurl_fetch(url) {
+  return new Promise((resolve, reject) => {
+    let chunks = [];
+    let data_callback = (new_data) => {
+      chunks.push(new_data);
+    };
+    let finish_callback = () => {
+      let response_data = merge_arrays(chunks);
+      let response_str = new TextDecoder().decode(response_data);
+      resolve(response_str);
     }
+    perform_request(url, data_callback, finish_callback);  
+  })
+}
 
-    let response_data = merge_arrays(chunks);
-    let response_str = new TextDecoder().decode(response_data);
-    console.log(response_str);
-  });
+async function main() {
+  silence_errs();
+  console.log(await libcurl_fetch("https://ifconfig.me/all"));
 }
 
 window.onload = () => {

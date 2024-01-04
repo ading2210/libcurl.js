@@ -1,13 +1,20 @@
-const cacert_path = "./out/cacert.peem";
+const cacert_path = "./out/cacert.pem";
 const websocket_url = `wss://${location.hostname}/ws`;
+
+function is_str(obj) {
+  return typeof obj === 'string' || obj instanceof String;
+}
 
 function allocate_str(str) {
   return allocate(intArrayFromString(str), ALLOC_NORMAL);
 }
 
+function allocate_array(array) {
+  return allocate(array, ALLOC_NORMAL);
+}
+
 //make emscripten shut up about unsupported syscalls
-function silence_errs() {
-  let is_str = obj => typeof obj === 'string' || obj instanceof String;
+function silence_errs() { 
 
   window._err = window.err;
   window.err = function() {
@@ -29,18 +36,25 @@ function silence_errs() {
 }
 
 //low level interface with c code
-function perform_request(url, params, js_data_callback, js_end_callback) {
+function perform_request(url, params, js_data_callback, js_end_callback, body=null) {
   let params_str = JSON.stringify(params);
   let end_callback_ptr;
   let data_callback_ptr;
   let url_ptr = allocate_str(url);
   let params_ptr = allocate_str(params_str);
 
+  let body_ptr = null;
+  let body_length = 0;
+  if (body) { //assume body is an int8array
+    body_ptr = allocate_array(body);
+    body_length = body.length;
+  }
+
   let end_callback = (error) => {
     Module.removeFunction(end_callback_ptr);
     Module.removeFunction(data_callback_ptr);
+    if (body_ptr) _free(body_ptr);
     _free(url_ptr);
-    _free(params_ptr);
     
     if (error) console.error("request failed with error code "+error);
     js_end_callback(error);
@@ -54,7 +68,8 @@ function perform_request(url, params, js_data_callback, js_end_callback) {
 
   end_callback_ptr = Module.addFunction(end_callback, "vi");
   data_callback_ptr = Module.addFunction(data_callback, "vii");
-  _perform_request(url_ptr, params_ptr, data_callback_ptr, end_callback_ptr);
+  _perform_request(url_ptr, params_ptr, data_callback_ptr, end_callback_ptr, body_ptr, body_length);
+  _free(params_ptr);
 }
 
 function merge_arrays(arrays) {
@@ -69,6 +84,17 @@ function merge_arrays(arrays) {
 }
 
 function libcurl_fetch(url, params={}) {
+  let body = null;
+  if (params.body) {
+    if (is_str(params.body)) {
+      body = new TextEncoder().encode(params.body);
+    }
+    else {
+      body = Uint8Array.from(params);
+    }
+    params.body = true;
+  }
+
   return new Promise((resolve, reject) => {
     let chunks = [];
     let data_callback = (new_data) => {
@@ -79,13 +105,13 @@ function libcurl_fetch(url, params={}) {
       let response_str = new TextDecoder().decode(response_data);
       resolve(response_str);
     }
-    perform_request(url, params, data_callback, finish_callback);  
+    perform_request(url, params, data_callback, finish_callback, body);
   })
 }
 
 async function main() {
   silence_errs();
-  console.log(await libcurl_fetch("https://ifconfig.me/all"));
+  console.log(await libcurl_fetch("https://httpbin.org/anything"));
 }
 
 window.onload = () => {

@@ -6,7 +6,10 @@
 #include <curl/curl.h>
 #include <cjson/cJSON.h>
 
-int write_function(void *data, size_t size, size_t nmemb, void(*data_callback)(char* chunk_ptr, int chunk_size)) {
+typedef void(*DataCallback)(char* chunk_ptr, int chunk_size);
+typedef void(*EndCallback)(int error);
+
+int write_function(void *data, size_t size, size_t nmemb, DataCallback data_callback) {
   long real_size = size * nmemb;
   char* chunk = malloc(real_size);
   memcpy(chunk, data, real_size);
@@ -15,7 +18,7 @@ int write_function(void *data, size_t size, size_t nmemb, void(*data_callback)(c
   return real_size;
 }
 
-void perform_request(const char* url, const char* json_params, void(*data_callback)(char* chunk_ptr, int chunk_size), void(*end_callback)(int error)) {
+void perform_request(const char* url, const char* json_params, DataCallback data_callback, EndCallback end_callback, const char* body, int body_length) {
   printf("downloading %s\n", url);
 
   CURL *http_handle;
@@ -38,13 +41,44 @@ void perform_request(const char* url, const char* json_params, void(*data_callba
   //parse json options
   cJSON* json = cJSON_Parse(json_params);
   cJSON* item = NULL;
+  struct curl_slist* headers_list = NULL;
+
   cJSON_ArrayForEach(item, json) {
     char* key = item->string;
-    printf("%s\n", key);
+
+    if (strcmp(key, "_libcurl_verbose") == 0) {
+      curl_easy_setopt(http_handle, CURLOPT_VERBOSE, 1L);
+    }
+
+    if (strcmp(key, "method") == 0 && cJSON_IsString(item)) {
+      curl_easy_setopt(http_handle, CURLOPT_CUSTOMREQUEST, item->valuestring);
+    }
+    
+    if (strcmp(key, "headers") == 0 && cJSON_IsObject(item)) {
+      cJSON* header = NULL;
+
+      cJSON_ArrayForEach(header, item) {
+        if (!cJSON_IsString(header)) continue;
+        int header_length = strlen(header->string) + strlen(header->valuestring) + 2;
+        char* header_str = malloc(header_length+1);
+        header_str[header_length] = 0;
+
+        sprintf(header_str, "%s: %s", header->string, header->valuestring);
+        headers_list = curl_slist_append(headers_list, header_str);
+        free(header_str);
+      }
+
+      curl_easy_setopt(http_handle, CURLOPT_HTTPHEADER, headers_list);
+    }
   }
   cJSON_Delete(json);
   
- 
+  //add post data if specified
+  if (body != NULL) {
+    curl_easy_setopt(http_handle, CURLOPT_POSTFIELDS, body);
+    curl_easy_setopt(http_handle, CURLOPT_POSTFIELDSIZE, body_length);
+  }
+  
   multi_handle = curl_multi_init();
   curl_multi_add_handle(multi_handle, http_handle);
   
@@ -64,7 +98,8 @@ void perform_request(const char* url, const char* json_params, void(*data_callba
     emscripten_sleep(0);
  
   } while(still_running);
- 
+  
+  curl_slist_free_all(headers_list);
   curl_multi_remove_handle(multi_handle, http_handle);
   curl_easy_cleanup(http_handle);
   curl_multi_cleanup(multi_handle);

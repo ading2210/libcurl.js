@@ -56,7 +56,7 @@ function perform_request(url, params, js_data_callback, js_end_callback, body=nu
     if (body_ptr) _free(body_ptr);
     _free(url_ptr);
     
-    if (error) console.error("request failed with error code "+error);
+    if (error != 0) console.error("request failed with error code " + error);
     js_end_callback(error);
   }
 
@@ -93,6 +93,10 @@ function libcurl_fetch(url, params={}) {
       body = Uint8Array.from(params);
     }
     params.body = true;
+  }
+  if (params.referer) {
+    if (!params.headers) params.headers = {};
+    params.headers["Referer"] = params.referer;
   }
 
   return new Promise((resolve, reject) => {

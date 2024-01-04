@@ -3,8 +3,9 @@
 #include <emscripten.h>
 #include <string.h>
 
-#include <curl/curl.h>
-#include <cjson/cJSON.h>
+#include "curl/curl.h"
+#include "cjson/cJSON.h"
+#include "errors.h"
 
 typedef void(*DataCallback)(char* chunk_ptr, int chunk_size);
 typedef void(*EndCallback)(int error);
@@ -24,6 +25,7 @@ void perform_request(const char* url, const char* json_params, DataCallback data
   CURL *http_handle;
   CURLM *multi_handle;
   int still_running = 1;
+  int abort_on_redirect = 0;
  
   curl_global_init(CURL_GLOBAL_DEFAULT);
   http_handle = curl_easy_init();
@@ -70,6 +72,20 @@ void perform_request(const char* url, const char* json_params, DataCallback data
 
       curl_easy_setopt(http_handle, CURLOPT_HTTPHEADER, headers_list);
     }
+
+    if (strcmp(key, "redirect") == 0 && cJSON_IsString(item)) {
+      if (strcmp(item->valuestring, "error") == 0) {
+        abort_on_redirect = 1;
+        curl_easy_setopt(http_handle, CURLOPT_FOLLOWLOCATION, 0);
+      }
+      else if (strcmp(item->valuestring, "manual") == 0) {
+        curl_easy_setopt(http_handle, CURLOPT_FOLLOWLOCATION, 0);
+      }
+      else { 
+        //follow by default
+        curl_easy_setopt(http_handle, CURLOPT_FOLLOWLOCATION, 1);
+      }
+    }
   }
   cJSON_Delete(json);
   
@@ -99,13 +115,20 @@ void perform_request(const char* url, const char* json_params, DataCallback data
  
   } while(still_running);
   
+  int error = (int) mc;
+  long response_code;
+  curl_easy_getinfo(http_handle, CURLINFO_RESPONSE_CODE, &response_code);
+
+  if (abort_on_redirect && response_code / 100 == 3) {
+    error = ERROR_REDIRECT_DISALLOWED;
+  }
+  
   curl_slist_free_all(headers_list);
   curl_multi_remove_handle(multi_handle, http_handle);
   curl_easy_cleanup(http_handle);
   curl_multi_cleanup(multi_handle);
   curl_global_cleanup();
 
-  int error = (int) mc;
   (*end_callback)(error);
 }
 

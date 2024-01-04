@@ -22,6 +22,7 @@ if [ ! -d $INCLUDE_DIR ]; then
   tools/curl.sh
 fi
 
+mkdir -p out
 COMPILE_CMD="emcc main.c $COMPILER_OPTIONS $EMSCRIPTEN_OPTIONS"
 echo $COMPILE_CMD
 $COMPILE_CMD

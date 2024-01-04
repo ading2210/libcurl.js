@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 INCLUDE_DIR="build/curl-wasm/include/"
 LIB_DIR="build/curl-wasm/lib/"
 CACERT_FILE="cacert.pem"
@@ -15,6 +17,7 @@ if [ ! -f $CACERT_FILE ]; then
 fi
 
 if [ ! -d $INCLUDE_DIR ]; then
+  mkdir -p build
   tools/openssl.sh
   tools/curl.sh
 fi

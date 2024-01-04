@@ -2,10 +2,14 @@
 
 #compile openssl for use with emscripten
 
+set -x
+set -e
+
 CORE_COUNT=$(nproc --all)
 PREFIX=$(realpath build/openssl-wasm)
 mkdir -p $PREFIX
 
+cd build
 rm -rf openssl
 git clone -b master --depth=1 https://github.com/openssl/openssl
 cd openssl
@@ -21,4 +25,4 @@ mkdir -p $PREFIX/lib
 cp -r include/openssl $PREFIX/include
 cp libcrypto.a libssl.a $PREFIX/lib
 
-cd ..
+cd ../../

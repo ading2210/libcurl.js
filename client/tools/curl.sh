@@ -2,11 +2,15 @@
 
 #compile openssl for use with emscripten
 
+set -x
+set -e
+
 CORE_COUNT=$(nproc --all)
 PREFIX=$(realpath build/curl-wasm)
 OPENSSL_PREFIX=$(realpath build/openssl-wasm)
 mkdir -p $PREFIX
 
+cd build
 rm -rf curl
 git clone -b master --depth=1 https://github.com/curl/curl
 cd curl
@@ -23,4 +27,4 @@ cp -r include/curl $PREFIX/include
 cp lib/.libs/libcurl.a $PREFIX/lib
 cp -r $OPENSSL_PREFIX/* $PREFIX
 
-cd ..
+cd ../../

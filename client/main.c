@@ -1,8 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <curl/curl.h>
 #include <emscripten.h>
 #include <string.h>
+
+#include <curl/curl.h>
+#include <cjson/cJSON.h>
 
 int write_function(void *data, size_t size, size_t nmemb, void(*data_callback)(char* chunk_ptr, int chunk_size)) {
   long real_size = size * nmemb;
@@ -12,8 +14,8 @@ int write_function(void *data, size_t size, size_t nmemb, void(*data_callback)(c
   free(chunk);
   return real_size;
 }
- 
-void perform_request(const char* url, void(*data_callback)(char* chunk_ptr, int chunk_size), void(*end_callback)()) {
+
+void perform_request(const char* url, const char* json_params, void(*data_callback)(char* chunk_ptr, int chunk_size), void(*end_callback)(int error)) {
   printf("downloading %s\n", url);
 
   CURL *http_handle;
@@ -32,13 +34,23 @@ void perform_request(const char* url, void(*data_callback)(char* chunk_ptr, int 
   //callbacks to pass the response data back to js
   curl_easy_setopt(http_handle, CURLOPT_WRITEFUNCTION, &write_function);
   curl_easy_setopt(http_handle, CURLOPT_WRITEDATA, data_callback);
+
+  //parse json options
+  cJSON* json = cJSON_Parse(json_params);
+  cJSON* item = NULL;
+  cJSON_ArrayForEach(item, json) {
+    char* key = item->string;
+    printf("%s\n", key);
+  }
+  cJSON_Delete(json);
   
  
   multi_handle = curl_multi_init();
   curl_multi_add_handle(multi_handle, http_handle);
- 
+  
+  CURLMcode mc;
   do {
-    CURLMcode mc = curl_multi_perform(multi_handle, &still_running);
+    mc = curl_multi_perform(multi_handle, &still_running);
  
     if(!mc)
       mc = curl_multi_poll(multi_handle, NULL, 0, 1000, NULL);
@@ -58,7 +70,8 @@ void perform_request(const char* url, void(*data_callback)(char* chunk_ptr, int 
   curl_multi_cleanup(multi_handle);
   curl_global_cleanup();
 
-  (*end_callback)();
+  int error = (int) mc;
+  (*end_callback)(error);
 }
 
 char* copy_bytes(const char* ptr, const int size) {

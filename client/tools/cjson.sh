@@ -14,7 +14,10 @@ rm -rf cjson
 git clone -b master --depth=1 https://github.com/DaveGamble/cJSON cjson
 cd cjson
 
-emmake make all
+sed -i 's/-fstack-protector-strong//' Makefile
+sed -i 's/-fstack-protector//' Makefile
+
+emmake make CC="emcc" static
 INCLUDE_FILES="cJSON.h cJSON_Utils.h"
 LIB_FILES="libcjson.a libcjson_utils.a"
 

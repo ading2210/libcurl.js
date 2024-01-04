@@ -1,5 +1,6 @@
 {
   "clangd.fallbackFlags": [
+    "-I${workspaceFolder}/client/build/curl-wasm/include",
     "-I/usr/share/emscripten/cache/sysroot/include/",
     "-I/usr/lib/emscripten/system/include"
   ]

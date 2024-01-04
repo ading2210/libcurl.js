@@ -29,17 +29,21 @@ function silence_errs() {
 }
 
 //low level interface with c code
-function perform_request(url, js_data_callback, js_end_callback) {
+function perform_request(url, params, js_data_callback, js_end_callback) {
+  let params_str = JSON.stringify(params);
   let end_callback_ptr;
   let data_callback_ptr;
   let url_ptr = allocate_str(url);
+  let params_ptr = allocate_str(params_str);
 
-  let end_callback = () => {
+  let end_callback = (error) => {
     Module.removeFunction(end_callback_ptr);
     Module.removeFunction(data_callback_ptr);
     _free(url_ptr);
+    _free(params_ptr);
     
-    js_end_callback();
+    if (error) console.error("request failed with error code "+error);
+    js_end_callback(error);
   }
 
   let data_callback = (chunk_ptr, chunk_size) => {
@@ -48,9 +52,9 @@ function perform_request(url, js_data_callback, js_end_callback) {
     js_data_callback(chunk);
   }
 
-  end_callback_ptr = Module.addFunction(end_callback, "v");
+  end_callback_ptr = Module.addFunction(end_callback, "vi");
   data_callback_ptr = Module.addFunction(data_callback, "vii");
-  _perform_request(url_ptr, data_callback_ptr, end_callback_ptr);
+  _perform_request(url_ptr, params_ptr, data_callback_ptr, end_callback_ptr);
 }
 
 function merge_arrays(arrays) {
@@ -64,7 +68,7 @@ function merge_arrays(arrays) {
   return new_array;
 }
 
-function libcurl_fetch(url) {
+function libcurl_fetch(url, params={}) {
   return new Promise((resolve, reject) => {
     let chunks = [];
     let data_callback = (new_data) => {
@@ -75,7 +79,7 @@ function libcurl_fetch(url) {
       let response_str = new TextDecoder().decode(response_data);
       resolve(response_str);
     }
-    perform_request(url, data_callback, finish_callback);  
+    perform_request(url, params, data_callback, finish_callback);  
   })
 }
 

@@ -1,5 +1,5 @@
 const cacert_path = "./out/cacert.pem";
-const websocket_url = `wss://${location.hostname}/ws`;
+const websocket_url_base = anura.wsproxyURL;
 
 function is_str(obj) {
   return typeof obj === 'string' || obj instanceof String;
@@ -37,6 +37,16 @@ function silence_errs() {
 
 //low level interface with c code
 function perform_request(url, params, js_data_callback, js_end_callback, body=null) {
+  const urlObj = new URL(url);
+  let port = urlObj.port;
+  if (!port) {
+    if (urlObj.protocol === "https:")
+      port = 443;
+    if (urlObj.protocol === "http:")
+      port = 80;
+  }
+  Module.websocket.url = websocket_url_base + urlObj.host + ':' + port;
+
   let params_str = JSON.stringify(params);
   let end_callback_ptr;
   let data_callback_ptr;
@@ -68,6 +78,7 @@ function perform_request(url, params, js_data_callback, js_end_callback, body=nu
 
   end_callback_ptr = Module.addFunction(end_callback, "vi");
   data_callback_ptr = Module.addFunction(data_callback, "vii");
+  
   _perform_request(url_ptr, params_ptr, data_callback_ptr, end_callback_ptr, body_ptr, body_length);
   _free(params_ptr);
 }
@@ -106,8 +117,8 @@ function libcurl_fetch(url, params={}) {
     };
     let finish_callback = () => {
       let response_data = merge_arrays(chunks);
-      let response_str = new TextDecoder().decode(response_data);
-      resolve(response_str);
+      // let response_str = new TextDecoder().decode(response_data);
+      resolve(new Response(response_data));
     }
     perform_request(url, params, data_callback, finish_callback, body);
   })
@@ -115,11 +126,12 @@ function libcurl_fetch(url, params={}) {
 
 async function main() {
   silence_errs();
+  anura.libcurl_fetch = libcurl_fetch;
+  // Module.websocket.url = websocket_url;
   console.log(await libcurl_fetch("https://httpbin.org/anything"));
 }
 
 window.onload = () => {
   console.log("page loaded, waiting for emscripten module load");
-  //Module.websocket.url = websocket_url;
   Module.onRuntimeInitialized = main;
 };

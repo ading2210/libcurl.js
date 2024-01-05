@@ -5,10 +5,13 @@
 
 #include "curl/curl.h"
 #include "cjson/cJSON.h"
-#include "errors.h"
+#include "curl/easy.h"
+#include "curl/header.h"
 
 typedef void(*DataCallback)(char* chunk_ptr, int chunk_size);
-typedef void(*EndCallback)(int error);
+typedef void(*EndCallback)(int error, char* response_json);
+
+#define ERROR_REDIRECT_DISALLOWED -1
 
 int write_function(void *data, size_t size, size_t nmemb, DataCallback data_callback) {
   long real_size = size * nmemb;
@@ -40,12 +43,15 @@ void perform_request(const char* url, const char* json_params, DataCallback data
   curl_easy_setopt(http_handle, CURLOPT_WRITEFUNCTION, &write_function);
   curl_easy_setopt(http_handle, CURLOPT_WRITEDATA, data_callback);
 
+  //some default options
+  curl_easy_setopt(http_handle, CURLOPT_FOLLOWLOCATION, 1);
+
   //parse json options
-  cJSON* json = cJSON_Parse(json_params);
+  cJSON* request_json = cJSON_Parse(json_params);
   cJSON* item = NULL;
   struct curl_slist* headers_list = NULL;
 
-  cJSON_ArrayForEach(item, json) {
+  cJSON_ArrayForEach(item, request_json) {
     char* key = item->string;
 
     if (strcmp(key, "_libcurl_verbose") == 0) {
@@ -81,13 +87,9 @@ void perform_request(const char* url, const char* json_params, DataCallback data
       else if (strcmp(item->valuestring, "manual") == 0) {
         curl_easy_setopt(http_handle, CURLOPT_FOLLOWLOCATION, 0);
       }
-      else { 
-        //follow by default
-        curl_easy_setopt(http_handle, CURLOPT_FOLLOWLOCATION, 1);
-      }
     }
   }
-  cJSON_Delete(json);
+  cJSON_Delete(request_json);
   
   //add post data if specified
   if (body != NULL) {
@@ -122,14 +124,44 @@ void perform_request(const char* url, const char* json_params, DataCallback data
   if (abort_on_redirect && response_code / 100 == 3) {
     error = ERROR_REDIRECT_DISALLOWED;
   }
+
+  //create new json object with response info
+  cJSON* response_json = cJSON_CreateObject();
+
+  cJSON* status_item = cJSON_CreateNumber(response_code);
+  cJSON_AddItemToObject(response_json, "status", status_item);
+
+  char* response_url;
+  curl_easy_getinfo(http_handle, CURLINFO_EFFECTIVE_URL, &response_url);
+  cJSON* url_item = cJSON_CreateString(response_url);
+  cJSON_AddItemToObject(response_json, "url", url_item);
+
+  cJSON* headers_item = cJSON_CreateObject();
+  struct curl_header *prev_header = NULL;
+  struct curl_header *header = NULL;
+  while ((header = curl_easy_nextheader(http_handle, CURLH_HEADER, -1, prev_header))) {
+    cJSON* header_entry = cJSON_CreateString(header->value);
+    cJSON_AddItemToObject(headers_item, header->name, header_entry);
+    prev_header = header;
+  }
+  cJSON_AddItemToObject(response_json, "headers", headers_item);
+
+  long redirect_count;
+  curl_easy_getinfo(http_handle, CURLINFO_REDIRECT_COUNT, &redirect_count);
+  cJSON* redirects_item = cJSON_CreateBool(redirect_count > 0);
+  cJSON_AddItemToObject(response_json, "redirected", redirects_item);
+
+  char* response_json_str = cJSON_Print(response_json);
+  cJSON_Delete(response_json);
   
+  //clean up curl
   curl_slist_free_all(headers_list);
   curl_multi_remove_handle(multi_handle, http_handle);
   curl_easy_cleanup(http_handle);
   curl_multi_cleanup(multi_handle);
   curl_global_cleanup();
 
-  (*end_callback)(error);
+  (*end_callback)(error, response_json_str);
 }
 
 char* copy_bytes(const char* ptr, const int size) {

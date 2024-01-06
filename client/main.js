@@ -79,27 +79,6 @@ function allocate_array(array) {
   return allocate(array, ALLOC_NORMAL);
 }
 
-//make emscripten shut up about unsupported syscalls
-function silence_errs() { 
-  window._err = window.err;
-  window.err = function() {
-    let arg = arguments[0];
-    if (is_str(arg) && arg.startsWith("__syscall_getsockname")) {
-      return;
-    }
-    window._err(...arguments);
-  }
-
-  window._console_error = window.console.error;
-  window.console.error = function() {
-    let arg = arguments[0];
-    if (is_str(arg) && arg === "warning: unsupported syscall: __syscall_setsockopt\n") {
-      return;
-    }
-    window._console_error(...arguments);
-  }
-}
-
 //low level interface with c code
 function perform_request(url, params, js_data_callback, js_end_callback, body=null) {
   let params_str = JSON.stringify(params);
@@ -201,7 +180,6 @@ function libcurl_fetch(url, params={}) {
 }
 
 async function main() {
-  silence_errs();
   console.log(await libcurl_fetch("https://httpbin.org/anything"));
 }
 

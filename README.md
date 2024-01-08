@@ -51,6 +51,8 @@ cd libcurl.js/server
 ./run.sh
 ```
 
+You can use the `PORT` and `SOCKS5_PORT` environment variables to control which ports the websocket proxy and the SOCKS5 server run on.
+
 ## Copyright:
 This project is licensed under the GNU AGPL v3.
 

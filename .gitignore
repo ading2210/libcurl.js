@@ -1,3 +1,4 @@
 /client/build
 /client/out
 /server/.venv
+/server/websockify

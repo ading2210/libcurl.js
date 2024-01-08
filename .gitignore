@@ -1,6 +1,3 @@
 /client/build
 /client/out
-/client/cacert.pem
-/client/libcurl.data
-/srelay*
-/websockify
+/server/.venv

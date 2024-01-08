@@ -4,7 +4,6 @@ set -e
 
 INCLUDE_DIR="build/curl-wasm/include/"
 LIB_DIR="build/curl-wasm/lib/"
-CACERT_FILE="cacert.pem"
 OUT_FILE="out/libcurl.js"
 MODULE_FILE="out/libcurl_module.js"
 WRAPPER_SOURCE="main.js"

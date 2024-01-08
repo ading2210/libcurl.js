@@ -8,12 +8,13 @@ This is an experimental port of [libcurl](https://curl.se/libcurl/) to WebAssemb
 - Support for up to TLS 1.3
 
 ## Building:
-You can build this project by cloning this repo and running the following commands:
+You can build this project by running the following commands:
 ```
+git clone https://github.com/ading2210/libcurl.js
 cd libcurl.js/client
 ./build.sh
 ```
-Make sure you have emscripten, git, and the various C build tools installed.
+Make sure you have emscripten, git, and the various C build tools installed. The build script will generate `client/out/libcurl.js`.
 
 ## Javascript API:
 
@@ -33,15 +34,22 @@ document.addEventListener("libcurl_load", ()=>{
 
 Once loaded, there will be a `window.libcurl` object which includes all the API functions.
 
-### Making HTTP Requests
-To make HTTP requests, use `libcurl.fetch`, which takes the same arguments as the browser's regular `fetch` function. Like the standard Fetch API, `libcurl.fetch` will also return a `Response` object.
+### Making HTTP Requests:
+To perform HTTP requests, use `libcurl.fetch`, which takes the same arguments as the browser's regular `fetch` function. Like the standard Fetch API, `libcurl.fetch` will also return a `Response` object.
 ```js
 let r = await libcurl.fetch("https://ading.dev");
 console.log(await r.text());
 ```
 
 ## Proxy Server:
-The proxy server consists of a SOCKS5 proxy server behind a websocket TCP reverse proxy. Code for running this as a single program is planned. 
+The proxy server consists of a [SOCKS5 proxy server](https://github.com/Amaindex/asyncio-socks-server) behind a [websocket TCP proxy](https://github.com/novnc/websockify). 
+
+To host the proxy server, run the following commands:
+```
+git clone https://github.com/ading2210/libcurl.js
+cd libcurl.js/server
+./run.sh
+```
 
 ## Copyright:
 This project is licensed under the GNU AGPL v3.

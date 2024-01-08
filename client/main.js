@@ -1,4 +1,3 @@
-const cacert_path = "./out/cacert.pem";
 const websocket_url = `wss://${location.hostname}/ws`;
 
 const status_messages = {
@@ -218,14 +217,18 @@ function libcurl_fetch(url, params={}) {
   })
 }
 
+function set_websocket_url(url) {
+  Module.websocket.url = url;
+}
+
 async function main() {
   console.log("emscripten module loaded");
   _load_certs();
+  set_websocket_url(websocket_url);
   console.log(await libcurl_fetch("https://httpbin.org/anything"));
 }
 
 window.onload = () => {
   console.log("page loaded, waiting for emscripten module load");
-  //Module.websocket.url = websocket_url;
   Module.onRuntimeInitialized = main;
 };

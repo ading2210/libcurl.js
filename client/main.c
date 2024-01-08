@@ -1,12 +1,13 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <emscripten.h>
 #include <string.h>
+#include <emscripten.h>
 
 #include "curl/curl.h"
-#include "cjson/cJSON.h"
 #include "curl/easy.h"
 #include "curl/header.h"
+#include "cjson/cJSON.h"
+#include "cacert.h"
 
 typedef void(*DataCallback)(char* chunk_ptr, int chunk_size);
 typedef void(*EndCallback)(int error, char* response_json);
@@ -170,6 +171,8 @@ char* copy_bytes(const char* ptr, const int size) {
   return new_ptr;
 }
 
-int main() {
-  printf("emscripten libcurl module loaded\n");
+void load_certs() {
+  FILE *file = fopen("/cacert.pem", "wb");
+  fwrite(_cacert_pem, 1, _cacert_pem_len, file);
+  fclose(file);
 }

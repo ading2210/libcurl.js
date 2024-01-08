@@ -67,6 +67,33 @@ const status_messages = {
   511: "Network Authentication Required"
 }
 
+//a case insensitive dictionary for request headers
+class Headers {
+  constructor(obj) {
+    for (let key in obj) {
+      this[key] = obj[key];
+    }
+    return new Proxy(this, this);
+  }
+  get(target, prop) {
+    let keys = Object.keys(this);
+    for (let key of keys) {
+      if (key.toLowerCase() === prop.toLowerCase()) {
+        return this[key];
+      }
+    }
+  }
+  set(target, prop, value) {
+    let keys = Object.keys(this);
+    for (let key of keys) {
+      if (key.toLowerCase() === prop.toLowerCase()) {
+        this[key] = value;
+      }
+    }
+    this[prop] = value;
+  }
+}
+
 function is_str(obj) {
   return typeof obj === 'string' || obj instanceof String;
 }
@@ -145,7 +172,7 @@ function create_response(response_data, response_info) {
   return response_obj;
 }
 
-function libcurl_fetch(url, params={}) {
+function create_options(params) {
   let body = null;
   if (params.body) {
     if (is_str(params.body)) {
@@ -156,10 +183,22 @@ function libcurl_fetch(url, params={}) {
     }
     params.body = true;
   }
+
+  if (!params.headers) params.headers = {};
+  params.headers = new Headers(params.headers);
+
   if (params.referer) {
-    if (!params.headers) params.headers = {};
     params.headers["Referer"] = params.referer;
   }
+  if (!params.headers["User-Agent"]) {
+    params.headers["User-Agent"] = navigator.userAgent;
+  }
+
+  return body;
+}
+
+function libcurl_fetch(url, params={}) {
+  let body = create_options(params);
 
   return new Promise((resolve, reject) => {
     let chunks = [];
@@ -180,6 +219,8 @@ function libcurl_fetch(url, params={}) {
 }
 
 async function main() {
+  console.log("emscripten module loaded");
+  _load_certs();
   console.log(await libcurl_fetch("https://httpbin.org/anything"));
 }
 

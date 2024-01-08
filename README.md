@@ -15,12 +15,32 @@ cd libcurl.js/client
 ```
 Make sure you have emscripten, git, and the various C build tools installed.
 
-## Documentation:
+## Javascript API:
 
-### Javascript API:
-This library provides an interface compatible with the standard Fetch API. You can call it using the `libcurl_fetch` function, which works identically to the regular `fetch` function.
+### Importing the Library:
+To import the library, follow the build instructions in the previous section, and copy `client/out/libcurl.js` a directory of your choice. Then you can simply link to it using a script tag and you will be able to use libcurl.js in your projects. Deferring the script load is recommended because the JS file is too large to download immediately.
 
-### Proxy Server:
+```html
+<script defer src="./out/libcurl.js"></script>
+```
+
+To know when libcurl.js has finished loading, you can use the `libcurl_load` DOM event. 
+```js
+document.addEventListener("libcurl_load", ()=>{
+  console.log("libcurl.js ready!");
+});
+```
+
+Once loaded, there will be a `window.libcurl` object which includes all the API functions.
+
+### Making HTTP Requests
+To make HTTP requests, use `libcurl.fetch`, which takes the same arguments as the browser's regular `fetch` function. Like the standard Fetch API, `libcurl.fetch` will also return a `Response` object.
+```js
+let r = await libcurl.fetch("https://ading.dev");
+console.log(await r.text());
+```
+
+## Proxy Server:
 The proxy server consists of a SOCKS5 proxy server behind a websocket TCP reverse proxy. Code for running this as a single program is planned. 
 
 ## Copyright:

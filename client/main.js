@@ -1,3 +1,9 @@
+//everything is wrapped in a function to prevent emscripten from polluting the global scope
+window.libcurl = (function() {
+
+//emscripten compiled code is inserted here
+/* __emscripten_output__ */
+
 const websocket_url = `wss://${location.hostname}/ws`;
 
 const status_messages = {
@@ -221,14 +227,19 @@ function set_websocket_url(url) {
   Module.websocket.url = url;
 }
 
-async function main() {
+function main() {
   console.log("emscripten module loaded");
   _load_certs();
   set_websocket_url(websocket_url);
-  console.log(await libcurl_fetch("https://httpbin.org/anything"));
+
+  let load_event = new Event("libcurl_load");
+  document.dispatchEvent(load_event);
 }
 
-window.onload = () => {
-  console.log("page loaded, waiting for emscripten module load");
-  Module.onRuntimeInitialized = main;
-};
+Module.onRuntimeInitialized = main;
+return {
+  fetch: libcurl_fetch,
+  set_websocket: set_websocket_url,
+}
+
+})()

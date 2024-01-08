@@ -1,9 +1,14 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <script src="./out/libcurl.js"></script>
-    <script src="./main.js"></script>
     <link rel="icon" href="data:;base64,=">
+
+    <script defer src="./out/libcurl.js"></script>
+    <script>
+      document.addEventListener("libcurl_load", ()=>{
+        console.log("libcurl.js ready!");
+      })
+    </script>
   </head>
   <body>
     <p>emscripten tests</p>

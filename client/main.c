@@ -46,6 +46,7 @@ void perform_request(const char* url, const char* json_params, DataCallback data
 
   //some default options
   curl_easy_setopt(http_handle, CURLOPT_FOLLOWLOCATION, 1);
+  curl_easy_setopt(http_handle, CURLOPT_ACCEPT_ENCODING, "");
 
   //parse json options
   cJSON* request_json = cJSON_Parse(json_params);

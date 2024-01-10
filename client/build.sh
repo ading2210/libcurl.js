@@ -12,7 +12,7 @@ WRAPPER_SOURCE="main.js"
 EXPORTED_FUNCS="_load_certs,_perform_request"
 RUNTIME_METHODS="addFunction,removeFunction,allocate,ALLOC_NORMAL"
 COMPILER_OPTIONS="-o $MODULE_FILE -lcurl -lssl -lcrypto -lcjson -lz -lbrotlidec -lbrotlicommon -I $INCLUDE_DIR -L $LIB_DIR"
-EMSCRIPTEN_OPTIONS="-lwebsocket.js -sSINGLE_FILE -sASYNCIFY -sALLOW_TABLE_GROWTH -sEXPORTED_FUNCTIONS=$EXPORTED_FUNCS -sEXPORTED_RUNTIME_METHODS=$RUNTIME_METHODS"
+EMSCRIPTEN_OPTIONS="-lwebsocket.js -sASYNCIFY -sALLOW_TABLE_GROWTH -sEXPORTED_FUNCTIONS=$EXPORTED_FUNCS -sEXPORTED_RUNTIME_METHODS=$RUNTIME_METHODS"
 
 if [ "$1" = "release" ]; then
   COMPILER_OPTIONS="-O3 $COMPILER_OPTIONS"
@@ -34,6 +34,7 @@ $COMPILE_CMD
 #patch the output to work around some emscripten bugs
 sed -i 's/err("__syscall_getsockname " \?+ \?fd);//' $MODULE_FILE
 sed -i 's/function _emscripten_console_error(str) {/& if(UTF8ToString(str).endsWith("__syscall_setsockopt\\n")) return;/' $MODULE_FILE
+sed -i "s/var \?opts \?= \?undefined;/& var parts=addr.split('\/');url=url+parts[0]+':'+port;/" $MODULE_FILE
 
 #merge compiled emscripten module and wrapper code
 cp $WRAPPER_SOURCE $OUT_FILE

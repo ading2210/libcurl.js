@@ -35,8 +35,6 @@ void perform_request(const char* url, const char* json_params, DataCallback data
   http_handle = curl_easy_init();
  
   curl_easy_setopt(http_handle, CURLOPT_URL, url);
-  curl_easy_setopt(http_handle, CURLOPT_PROXY, "socks5h://127.0.0.1:1234");
-  curl_easy_setopt(http_handle, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
   curl_easy_setopt(http_handle, CURLOPT_CAINFO, "/cacert.pem");
   curl_easy_setopt(http_handle, CURLOPT_CAPATH, "/cacert.pem");
 

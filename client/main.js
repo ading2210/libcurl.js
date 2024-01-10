@@ -96,6 +96,7 @@ class Headers {
       }
     }
     this[prop] = value;
+    return true;
   }
 }
 
@@ -214,6 +215,7 @@ function libcurl_fetch(url, params={}) {
     let finish_callback = (error, response_info) => {
       if (error != 0) {
         reject("libcurl.js encountered an error: " + error);
+        return;
       }
       let response_data = merge_arrays(chunks);
       let response_obj = create_response(response_data, response_info);

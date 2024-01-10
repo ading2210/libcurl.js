@@ -103,6 +103,7 @@ void perform_request(const char* url, const char* json_params, DataCallback data
   curl_multi_add_handle(multi_handle, http_handle);
   
   CURLMcode mc;
+  struct CURLMsg *m;
   do {
     mc = curl_multi_perform(multi_handle, &still_running);
  
@@ -114,12 +115,15 @@ void perform_request(const char* url, const char* json_params, DataCallback data
       break;
     }
 
+    int msgq = 0;
+    m = curl_multi_info_read(multi_handle, &msgq);
+
     //ensure we dont block the main thread
     emscripten_sleep(0);
  
   } while(still_running);
   
-  int error = (int) mc;
+  int error = (int) m->data.result;
   long response_code;
   curl_easy_getinfo(http_handle, CURLINFO_RESPONSE_CODE, &response_code);
 

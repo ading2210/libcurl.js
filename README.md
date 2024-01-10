@@ -14,7 +14,7 @@ git clone https://github.com/ading2210/libcurl.js
 cd libcurl.js/client
 ./build.sh
 ```
-Make sure you have emscripten, git, and the various C build tools installed. The build script will generate `client/out/libcurl.js`.
+Make sure you have emscripten, git, and the various C build tools installed. The build script will generate `client/out/libcurl.js` as well as `client/out/libcurl_module.mjs`, which is an ES6 module.
 
 ## Javascript API:
 
@@ -39,6 +39,12 @@ To perform HTTP requests, use `libcurl.fetch`, which takes the same arguments as
 ```js
 let r = await libcurl.fetch("https://ading.dev");
 console.log(await r.text());
+```
+
+### Changing the Websocket URL:
+You can change the URL of the websocket proxy by using `libcurl.set_websocket`.
+```js
+libcurl.set_websocket("ws://localhost:6001/");
 ```
 
 ## Proxy Server:

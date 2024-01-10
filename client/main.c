@@ -30,6 +30,7 @@ void perform_request(const char* url, const char* json_params, DataCallback data
   CURLM *multi_handle;
   int still_running = 1;
   int abort_on_redirect = 0;
+  char error_buffer[CURL_ERROR_SIZE];
  
   curl_global_init(CURL_GLOBAL_DEFAULT);
   http_handle = curl_easy_init();
@@ -39,6 +40,7 @@ void perform_request(const char* url, const char* json_params, DataCallback data
   curl_easy_setopt(http_handle, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
   curl_easy_setopt(http_handle, CURLOPT_CAINFO, "/cacert.pem");
   curl_easy_setopt(http_handle, CURLOPT_CAPATH, "/cacert.pem");
+  curl_easy_setopt(http_handle, CURLOPT_ERRORBUFFER, error_buffer);
 
   //callbacks to pass the response data back to js
   curl_easy_setopt(http_handle, CURLOPT_WRITEFUNCTION, &write_function);
@@ -104,6 +106,8 @@ void perform_request(const char* url, const char* json_params, DataCallback data
   
   CURLMcode mc;
   struct CURLMsg *m;
+  error_buffer[0] = 0;
+
   do {
     mc = curl_multi_perform(multi_handle, &still_running);
  
@@ -133,6 +137,9 @@ void perform_request(const char* url, const char* json_params, DataCallback data
 
   //create new json object with response info
   cJSON* response_json = cJSON_CreateObject();
+
+  cJSON* error_item = cJSON_CreateString(error_buffer);
+  cJSON_AddItemToObject(response_json, "error", error_item);
 
   cJSON* status_item = cJSON_CreateNumber(response_code);
   cJSON_AddItemToObject(response_json, "status", status_item);

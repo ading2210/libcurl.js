@@ -4,13 +4,13 @@
 
 mkdir -p build
 
-OPENSSL_PREFIX=$(realpath build/openssl-wasm)
+WOLFSSL_PREFIX=$(realpath build/wolfssl-wasm)
 CJSON_PREFIX=$(realpath build/cjson-wasm)
 CURL_PREFIX=$(realpath build/curl-wasm)
 ZLIB_PREFIX=$(realpath build/zlib-wasm)
 BROTLI_PREFIX=$(realpath build/brotli-wasm)
 
-if [ ! -d $OPENSSL_PREFIX ]; then
+if [ ! -d $WOLFSSL_PREFIX ]; then
   tools/openssl.sh
 fi
 if [ ! -d $CJSON_PREFIX ]; then
@@ -26,7 +26,7 @@ if [ ! -d $CURL_PREFIX ]; then
   tools/curl.sh
 fi
 
-cp -r $OPENSSL_PREFIX/* $CURL_PREFIX
+cp -r $WOLFSSL_PREFIX/* $CURL_PREFIX
 cp -r $CJSON_PREFIX/* $CURL_PREFIX
 cp -r $ZLIB_PREFIX/* $CURL_PREFIX
 cp -r $BROTLI_PREFIX/* $CURL_PREFIX

@@ -137,7 +137,6 @@ function perform_request(url, params, js_data_callback, js_end_callback, body=nu
     _free(url_ptr);
     _free(response_json_ptr);
     
-    if (error != 0) console.error("request failed with error code " + error);
     js_end_callback(error, response_info);
   }
 
@@ -165,6 +164,7 @@ function merge_arrays(arrays) {
 }
 
 function create_response(response_data, response_info) {
+  delete response_info.error;
   response_info.ok = response_info.status >= 200 && response_info.status < 300;
   response_info.statusText = status_messages[response_info.status] || "";
 
@@ -214,7 +214,7 @@ function libcurl_fetch(url, params={}) {
     
     let finish_callback = (error, response_info) => {
       if (error != 0) {
-        reject("libcurl.js encountered an error: " + error);
+        reject("libcurl.js encountered an error: " + error + "\n" + response_info.error);
         return;
       }
       let response_data = merge_arrays(chunks);

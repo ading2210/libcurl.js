@@ -11,7 +11,7 @@ WRAPPER_SOURCE="main.js"
 
 EXPORTED_FUNCS="_load_certs,_perform_request"
 RUNTIME_METHODS="addFunction,removeFunction,allocate,ALLOC_NORMAL"
-COMPILER_OPTIONS="-o $MODULE_FILE -lcurl -lssl -lcrypto -lcjson -lz -lbrotlidec -lbrotlicommon -I $INCLUDE_DIR -L $LIB_DIR"
+COMPILER_OPTIONS="-o $MODULE_FILE -lcurl -lwolfssl -lcjson -lz -lbrotlidec -lbrotlicommon -I $INCLUDE_DIR -L $LIB_DIR"
 EMSCRIPTEN_OPTIONS="-lwebsocket.js -sSINGLE_FILE -sASYNCIFY -sALLOW_TABLE_GROWTH -sEXPORTED_FUNCTIONS=$EXPORTED_FUNCS -sEXPORTED_RUNTIME_METHODS=$RUNTIME_METHODS"
 
 if [ "$1" = "release" ]; then

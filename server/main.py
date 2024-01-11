@@ -1,45 +1,55 @@
-import logging
-import os
+import asyncio
+from websockets.server import serve
+from websockets.exceptions import ConnectionClosed
 
-from asyncio_socks_server.app import SocksServer
-from websockify.websocketproxy import WebSocketProxy
+buffer_size = 64*1024
 
-#start a socks5 proxy as well as websockify
+class Connection:
+  def __init__(self, ws, path):
+    self.ws = ws
+    self.path = path
 
-def setup_logging(prefix):
-  stderr_handler = logging.StreamHandler()
-  stderr_handler.setLevel(logging.DEBUG)
-  log_formatter = logging.Formatter(prefix + "%(message)s")
-  stderr_handler.setFormatter(log_formatter)
-  root = logging.getLogger()
-  root.addHandler(stderr_handler)
-  root.setLevel(logging.INFO)
+  async def setup_connection(self):
+    addr_str = self.path.split("/")[-1]
+    self.tcp_host, self.tcp_port = addr_str.split(":")
+    self.tcp_port = int(self.tcp_port)
 
-def start_websockify(listen_port, proxy_port):
-  options = {
-    "listen_host": "127.0.0.1", 
-    "listen_port": int(listen_port), 
-    "target_host": "127.0.0.1", 
-    "target_port": int(proxy_port)
-  }
+    self.tcp_reader, self.tcp_writer = await asyncio.open_connection(host=self.tcp_host, port=self.tcp_port, limit=buffer_size)
 
-  server = WebSocketProxy(**options)
-  server.start_server()
+  async def handle_ws(self):
+    while True:
+      try:
+        data = await self.ws.recv()
+      except ConnectionClosed:
+        break
+      self.tcp_writer.write(data)
+      await self.tcp_writer.drain()
+      print("sent data to tcp")
+    
+    self.tcp_writer.close()
+  
+  async def handle_tcp(self):
+    while True:
+      data = await self.tcp_reader.read(buffer_size)
+      if len(data) == 0:
+        break #socket closed
+      await self.ws.send(data)
+      print("sent data to ws")
+    
+    await self.ws.close()
 
-def start_socks(proxy_port):
-  socks_app = SocksServer(
-    LISTEN_HOST="127.0.0.1",
-    LISTEN_PORT=int(proxy_port)
-  )
-  socks_app.run()
+async def connection_handler(websocket, path):
+  print("incoming connection from "+path)
+  connection = Connection(websocket, path)
+  await connection.setup_connection()
+  ws_handler = asyncio.create_task(connection.handle_ws())
+  tcp_handler = asyncio.create_task(connection.handle_tcp())
+  
+  await asyncio.gather(ws_handler, tcp_handler)
+
+async def main():
+  async with serve(connection_handler, "127.0.0.1", 6001):
+    await asyncio.Future()
 
 if __name__ == "__main__":
-  listen_port = os.environ.get("PORT") or 6001
-  proxy_port = os.environ.get("SOCKS5_PORT") or 6002
-
-  pid = os.fork()
-  if pid == 0:
-    setup_logging("[websockify] ")
-    start_websockify(listen_port, proxy_port)
-  else:
-    start_socks(proxy_port)
+  asyncio.run(main())

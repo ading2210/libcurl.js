@@ -24,8 +24,6 @@ int write_function(void *data, size_t size, size_t nmemb, DataCallback data_call
 }
 
 void perform_request(const char* url, const char* json_params, DataCallback data_callback, EndCallback end_callback, const char* body, int body_length) {
-  printf("downloading %s\n", url);
-
   CURL *http_handle;
   CURLM *multi_handle;
   int still_running = 1;

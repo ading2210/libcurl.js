@@ -1,2 +1,1 @@
-websockify
-asyncio-socks-server
+websockets

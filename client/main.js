@@ -4,7 +4,7 @@ window.libcurl = (function() {
 //emscripten compiled code is inserted here
 /* __emscripten_output__ */
 
-const websocket_url = `wss://${location.hostname}/ws`;
+const websocket_url = `wss://${location.hostname}/ws/`;
 
 const status_messages = {
   100: "Continue",

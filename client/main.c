@@ -8,11 +8,23 @@
 #include "curl/header.h"
 #include "cjson/cJSON.h"
 #include "cacert.h"
+#include "curl/multi.h"
 
 typedef void(*DataCallback)(char* chunk_ptr, int chunk_size);
 typedef void(*EndCallback)(int error, char* response_json);
+void finish_request(CURLMsg *curl_msg);
 
 #define ERROR_REDIRECT_DISALLOWED -1
+
+CURLM *multi_handle;
+int request_active = 0;
+
+struct RequestInfo {
+  int abort_on_redirect;
+  struct CURLMsg *curl_msg;
+  struct curl_slist* headers_list;
+  EndCallback end_callback;
+};
 
 int write_function(void *data, size_t size, size_t nmemb, DataCallback data_callback) {
   long real_size = size * nmemb;
@@ -23,14 +35,36 @@ int write_function(void *data, size_t size, size_t nmemb, DataCallback data_call
   return real_size;
 }
 
-void perform_request(const char* url, const char* json_params, DataCallback data_callback, EndCallback end_callback, const char* body, int body_length) {
-  CURL *http_handle;
-  CURLM *multi_handle;
-  int still_running = 1;
-  int abort_on_redirect = 0;
+void request_loop() {
+  CURLMcode mc;
+  struct CURLMsg *curl_msg;
+  request_active = 1;
+  do {
+    mc = curl_multi_perform(multi_handle, &request_active);
  
-  curl_global_init(CURL_GLOBAL_DEFAULT);
-  http_handle = curl_easy_init();
+    if(!mc)
+      mc = curl_multi_poll(multi_handle, NULL, 0, 1000, NULL);
+ 
+    if(mc) {
+      fprintf(stderr, "curl_multi_poll() failed, code %d.\n", (int)mc);
+      break;
+    }
+
+    int msgq = 0;
+    curl_msg = curl_multi_info_read(multi_handle, &msgq);
+    if (curl_msg && curl_msg->msg == CURLMSG_DONE) {
+      finish_request(curl_msg);
+    }
+
+    //ensure we dont block the main thread
+    emscripten_sleep(0);
+ 
+  } while(request_active);
+}
+
+void start_request(const char* url, const char* json_params, DataCallback data_callback, EndCallback end_callback, const char* body, int body_length) {
+  CURL *http_handle = curl_easy_init();  
+  int abort_on_redirect = 0;
  
   curl_easy_setopt(http_handle, CURLOPT_URL, url);
   curl_easy_setopt(http_handle, CURLOPT_CAINFO, "/cacert.pem");
@@ -94,36 +128,31 @@ void perform_request(const char* url, const char* json_params, DataCallback data
     curl_easy_setopt(http_handle, CURLOPT_POSTFIELDS, body);
     curl_easy_setopt(http_handle, CURLOPT_POSTFIELDSIZE, body_length);
   }
+
+  struct RequestInfo *request_info = malloc(sizeof(struct RequestInfo));
+  request_info->abort_on_redirect = abort_on_redirect;
+  request_info->curl_msg = NULL;
+  request_info->headers_list = headers_list;
+  request_info->end_callback = end_callback;
+  curl_easy_setopt(http_handle, CURLOPT_PRIVATE, request_info);
   
-  multi_handle = curl_multi_init();
   curl_multi_add_handle(multi_handle, http_handle);
-  
-  CURLMcode mc;
-  struct CURLMsg *m;
-  do {
-    mc = curl_multi_perform(multi_handle, &still_running);
- 
-    if(!mc)
-      mc = curl_multi_poll(multi_handle, NULL, 0, 1000, NULL);
- 
-    if(mc) {
-      fprintf(stderr, "curl_multi_poll() failed, code %d.\n", (int)mc);
-      break;
-    }
+  if (!request_active) {
+    request_loop();
+  }
+}
 
-    int msgq = 0;
-    m = curl_multi_info_read(multi_handle, &msgq);
+void finish_request(CURLMsg *curl_msg) {
+  //get initial request info from the http handle
+  struct RequestInfo *request_info;
+  CURL *http_handle = curl_msg->easy_handle;
+  curl_easy_getinfo(http_handle, CURLINFO_PRIVATE, &request_info);
 
-    //ensure we dont block the main thread
-    emscripten_sleep(0);
- 
-  } while(still_running);
-  
-  int error = (int) m->data.result;
+  int error = (int) curl_msg->data.result;
   long response_code;
   curl_easy_getinfo(http_handle, CURLINFO_RESPONSE_CODE, &response_code);
 
-  if (abort_on_redirect && response_code / 100 == 3) {
+  if (request_info->abort_on_redirect && response_code / 100 == 3) {
     error = ERROR_REDIRECT_DISALLOWED;
   }
 
@@ -157,13 +186,11 @@ void perform_request(const char* url, const char* json_params, DataCallback data
   cJSON_Delete(response_json);
   
   //clean up curl
-  curl_slist_free_all(headers_list);
+  curl_slist_free_all(request_info->headers_list);
   curl_multi_remove_handle(multi_handle, http_handle);
   curl_easy_cleanup(http_handle);
-  curl_multi_cleanup(multi_handle);
-  curl_global_cleanup();
-
-  (*end_callback)(error, response_json_str);
+  (*request_info->end_callback)(error, response_json_str);
+  free(request_info);
 }
 
 char* copy_bytes(const char* ptr, const int size) {
@@ -172,7 +199,10 @@ char* copy_bytes(const char* ptr, const int size) {
   return new_ptr;
 }
 
-void load_certs() {
+void init_curl() {
+  curl_global_init(CURL_GLOBAL_DEFAULT);
+  multi_handle = curl_multi_init();
+  
   FILE *file = fopen("/cacert.pem", "wb");
   fwrite(_cacert_pem, 1, _cacert_pem_len, file);
   fclose(file);

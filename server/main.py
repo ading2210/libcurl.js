@@ -2,7 +2,7 @@ import asyncio
 from websockets.server import serve
 from websockets.exceptions import ConnectionClosed
 
-buffer_size = 64*1024
+buffer_size = 1024*1024
 
 class Connection:
   def __init__(self, ws, path):
@@ -48,7 +48,7 @@ async def connection_handler(websocket, path):
   await asyncio.gather(ws_handler, tcp_handler)
 
 async def main():
-  async with serve(connection_handler, "127.0.0.1", 6001):
+  async with serve(connection_handler, "127.0.0.1", 6001, subprotocols=["binary"]):
     await asyncio.Future()
 
 if __name__ == "__main__":

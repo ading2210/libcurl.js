@@ -149,7 +149,7 @@ function perform_request(url, params, js_data_callback, js_end_callback, body=nu
 
   end_callback_ptr = Module.addFunction(end_callback, "vii");
   data_callback_ptr = Module.addFunction(data_callback, "vii");
-  _perform_request(url_ptr, params_ptr, data_callback_ptr, end_callback_ptr, body_ptr, body_length);
+  _start_request(url_ptr, params_ptr, data_callback_ptr, end_callback_ptr, body_ptr, body_length);
   _free(params_ptr);
 }
 
@@ -231,7 +231,7 @@ function set_websocket_url(url) {
 
 function main() {
   console.log("emscripten module loaded");
-  _load_certs();
+  _init_curl();
   set_websocket_url(websocket_url);
 
   let load_event = new Event("libcurl_load");

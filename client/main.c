@@ -50,15 +50,14 @@ void request_loop() {
       break;
     }
 
+    //ensure we dont block the main thread
+    emscripten_sleep(0);
+
     int msgq = 0;
     curl_msg = curl_multi_info_read(multi_handle, &msgq);
     if (curl_msg && curl_msg->msg == CURLMSG_DONE) {
       finish_request(curl_msg);
     }
-
-    //ensure we dont block the main thread
-    emscripten_sleep(0);
- 
   } while(request_active);
 }
 

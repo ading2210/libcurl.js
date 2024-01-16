@@ -4,6 +4,9 @@ window.libcurl = (function() {
 //emscripten compiled code is inserted here
 /* __emscripten_output__ */
 
+//wisp client code goes here
+/* __wisp_libraries__ */
+
 const websocket_url = `wss://${location.hostname}/ws/`;
 
 const status_messages = {

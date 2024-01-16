@@ -17,7 +17,7 @@ git clone -b master --depth=1 https://github.com/curl/curl
 cd curl
 
 autoreconf -fi
-emconfigure ./configure --host i686-linux --disable-shared --disable-threaded-resolver --without-libpsl --disable-netrc --disable-ipv6 --disable-tftp --disable-ntlm-wb --with-ssl=$OPENSSL_PREFIX --with-zlib=$ZLIB_PREFIX --with-brotli=$BROTLI_PREFIX
+emconfigure ./configure --host i686-linux --disable-shared --disable-threaded-resolver --without-libpsl --disable-netrc --disable-ipv6 --disable-tftp --disable-ntlm-wb --enable-websockets --with-ssl=$OPENSSL_PREFIX --with-zlib=$ZLIB_PREFIX --with-brotli=$BROTLI_PREFIX
 emmake make -j$CORE_COUNT CFLAGS="-pthread" LIBS="-lbrotlicommon"
 
 rm -rf $PREFIX

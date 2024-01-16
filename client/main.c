@@ -26,6 +26,10 @@ struct RequestInfo {
   EndCallback end_callback;
 };
 
+int starts_with(const char *a, const char *b) {
+  return strncmp(a, b, strlen(b)) == 0;
+}
+
 int write_function(void *data, size_t size, size_t nmemb, DataCallback data_callback) {
   long real_size = size * nmemb;
   char* chunk = malloc(real_size);
@@ -35,30 +39,30 @@ int write_function(void *data, size_t size, size_t nmemb, DataCallback data_call
   return real_size;
 }
 
-void request_loop() {
+int active_requests() {
+  return request_active;
+}
+
+void tick_request() {
   CURLMcode mc;
   struct CURLMsg *curl_msg;
   request_active = 1;
-  do {
-    mc = curl_multi_perform(multi_handle, &request_active);
- 
-    if(!mc)
-      mc = curl_multi_poll(multi_handle, NULL, 0, 1000, NULL);
- 
-    if(mc) {
-      fprintf(stderr, "curl_multi_poll() failed, code %d.\n", (int)mc);
-      break;
-    }
+  
+  mc = curl_multi_perform(multi_handle, &request_active);
 
-    //ensure we dont block the main thread
-    emscripten_sleep(0);
+  if(!mc)
+    mc = curl_multi_poll(multi_handle, NULL, 0, 1000, NULL);
 
-    int msgq = 0;
-    curl_msg = curl_multi_info_read(multi_handle, &msgq);
-    if (curl_msg && curl_msg->msg == CURLMSG_DONE) {
-      finish_request(curl_msg);
-    }
-  } while(request_active);
+  if(mc) {
+    fprintf(stderr, "curl_multi_poll() failed, code %d.\n", (int)mc);
+    return;
+  }
+
+  int msgq = 0;
+  curl_msg = curl_multi_info_read(multi_handle, &msgq);
+  if (curl_msg && curl_msg->msg == CURLMSG_DONE) {
+    finish_request(curl_msg);
+  }
 }
 
 void start_request(const char* url, const char* json_params, DataCallback data_callback, EndCallback end_callback, const char* body, int body_length) {
@@ -76,6 +80,11 @@ void start_request(const char* url, const char* json_params, DataCallback data_c
   //some default options
   curl_easy_setopt(http_handle, CURLOPT_FOLLOWLOCATION, 1);
   curl_easy_setopt(http_handle, CURLOPT_ACCEPT_ENCODING, "");
+
+  //if url is a websocket, tell curl that we should handle the connection manually
+  if (starts_with(url, "wss://") || starts_with(url, "ws://")) {
+    curl_easy_setopt(http_handle, CURLOPT_CONNECT_ONLY, 2L);
+  }
 
   //parse json options
   cJSON* request_json = cJSON_Parse(json_params);
@@ -136,9 +145,6 @@ void start_request(const char* url, const char* json_params, DataCallback data_c
   curl_easy_setopt(http_handle, CURLOPT_PRIVATE, request_info);
   
   curl_multi_add_handle(multi_handle, http_handle);
-  if (!request_active) {
-    request_loop();
-  }
 }
 
 void finish_request(CURLMsg *curl_msg) {

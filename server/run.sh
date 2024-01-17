@@ -4,16 +4,14 @@
 
 set -e
 
+cd wisp_server
 if [ ! -d ".venv" ]; then
   python3 -m venv .venv
 fi
 source .venv/bin/activate
 
-if ! python3 -c "import asyncio_socks_server, websockify" 2> /dev/null; then
-  pip3 install asyncio-socks-server
-  git clone https://github.com/novnc/websockify -b master --depth=1
-  pip3 install ./websockify
-  rm -rf websockify
+if ! python3 -c "import websockets" 2> /dev/null; then
+  pip3 install -r requirements.txt
 fi
 
 python3 main.py

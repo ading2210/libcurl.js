@@ -10,7 +10,7 @@ This is an experimental port of [libcurl](https://curl.se/libcurl/) to WebAssemb
 ## Building:
 You can build this project by running the following commands:
 ```
-git clone https://github.com/ading2210/libcurl.js
+git clone https://github.com/ading2210/libcurl.js --recursive
 cd libcurl.js/client
 ./build.sh
 ```
@@ -48,16 +48,16 @@ libcurl.set_websocket("ws://localhost:6001/");
 ```
 
 ## Proxy Server:
-The proxy server consists of a [SOCKS5 proxy server](https://github.com/Amaindex/asyncio-socks-server) behind a [websocket TCP proxy](https://github.com/novnc/websockify). 
+The proxy server consists of a standard [Wisp](https://github.com/MercuryWorkshop/wisp-protocol) server, allowing multiple TCP connections to share the same websocket.
 
 To host the proxy server, run the following commands:
 ```
-git clone https://github.com/ading2210/libcurl.js
+git clone https://github.com/ading2210/libcurl.js --recursive
 cd libcurl.js/server
 ./run.sh
 ```
 
-You can use the `PORT` and `SOCKS5_PORT` environment variables to control which ports the websocket proxy and the SOCKS5 server run on.
+You can use the `HOST` and `PORT` environment variables to control the hostname and port that the proxy server listens on.
 
 ## Copyright:
 This project is licensed under the GNU AGPL v3.

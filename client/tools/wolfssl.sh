@@ -16,7 +16,7 @@ git clone -b master --depth=1 https://github.com/wolfSSL/wolfssl wolfssl
 cd wolfssl
 
 autoreconf -fi
-CFLAGS="-Os -DSP_WORD_SIZE=32" emconfigure ./configure --prefix=$PREFIX --enable-curl --enable-distro --enable-static --disable-shared --host=i686-linux --disable-examples
+CFLAGS="-Oz -DSP_WORD_SIZE=32" emconfigure ./configure --prefix=$PREFIX --enable-curl --enable-static --disable-shared --host=i686-linux --disable-examples # --enable-cryptonly
 emmake make -j$CORE_COUNT
 make install
 

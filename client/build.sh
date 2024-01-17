@@ -20,7 +20,7 @@ if [ "$1" = "release" ]; then
   COMPILER_OPTIONS="-Oz -flto $COMPILER_OPTIONS"
   EMSCRIPTEN_OPTIONS="-sSINGLE_FILE $EMSCRIPTEN_OPTIONS"
 else
-  COMPILER_OPTIONS="$COMPILER_OPTIONS --profiling"
+  COMPILER_OPTIONS="$COMPILER_OPTIONS --profiling -g"
 fi
 
 #ensure deps are compiled

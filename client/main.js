@@ -9,6 +9,7 @@ window.libcurl = (function() {
 
 const websocket_url = `wss://${location.hostname}/ws/`;
 var event_loop = null;
+var active_requests = 0
 
 //a case insensitive dictionary for request headers
 class Headers {
@@ -76,6 +77,7 @@ function perform_request(url, params, js_data_callback, js_end_callback, body=nu
     _free(response_json_ptr);
     
     if (error != 0) console.error("request failed with error code " + error);
+    active_requests --;
     js_end_callback(error, response_info);
   }
 
@@ -90,11 +92,14 @@ function perform_request(url, params, js_data_callback, js_end_callback, body=nu
   _start_request(url_ptr, params_ptr, data_callback_ptr, end_callback_ptr, body_ptr, body_length);
   _free(params_ptr);
   
+  active_requests ++;
   _tick_request();
   if (!event_loop) {
     event_loop = setInterval(() => {
-      _tick_request();
-      if (!_active_requests()) {
+      if (_active_requests() || active_requests) {
+        _tick_request();
+      }
+      else {
         clearInterval(event_loop);
         event_loop = null;
       }
@@ -190,7 +195,7 @@ function main() {
 Module.onRuntimeInitialized = main;
 return {
   fetch: libcurl_fetch,
-  set_websocket: set_websocket_url,
+  set_websocket: set_websocket_url
 }
 
 })()

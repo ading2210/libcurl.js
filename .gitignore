@@ -1,4 +1,5 @@
 /client/build
 /client/out
+/client/fragments/tmp
 /server/.venv
 /server/websockify

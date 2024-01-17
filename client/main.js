@@ -8,6 +8,7 @@ window.libcurl = (function() {
 /* __extra_libraries__ */
 
 const websocket_url = `wss://${location.hostname}/ws/`;
+var event_loop = null;
 
 //a case insensitive dictionary for request headers
 class Headers {
@@ -88,15 +89,16 @@ function perform_request(url, params, js_data_callback, js_end_callback, body=nu
   data_callback_ptr = Module.addFunction(data_callback, "vii");
   _start_request(url_ptr, params_ptr, data_callback_ptr, end_callback_ptr, body_ptr, body_length);
   _free(params_ptr);
-
-  if (!_active_requests()) {
-    //time out requests after a while
-    let event_loop = setInterval(() => {
+  
+  _tick_request();
+  if (!event_loop) {
+    event_loop = setInterval(() => {
       _tick_request();
       if (!_active_requests()) {
         clearInterval(event_loop);
+        event_loop = null;
       }
-    }, 500);
+    }, 0);
   }
 }
 

@@ -50,14 +50,6 @@ void tick_request() {
   
   mc = curl_multi_perform(multi_handle, &request_active);
 
-  if(!mc)
-    mc = curl_multi_poll(multi_handle, NULL, 0, 1000, NULL);
-
-  if(mc) {
-    fprintf(stderr, "curl_multi_poll() failed, code %d.\n", (int)mc);
-    return;
-  }
-
   int msgq = 0;
   curl_msg = curl_multi_info_read(multi_handle, &msgq);
   if (curl_msg && curl_msg->msg == CURLMSG_DONE) {

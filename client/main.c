@@ -72,6 +72,7 @@ void start_request(const char* url, const char* json_params, DataCallback data_c
   //some default options
   curl_easy_setopt(http_handle, CURLOPT_FOLLOWLOCATION, 1);
   curl_easy_setopt(http_handle, CURLOPT_ACCEPT_ENCODING, "");
+  curl_easy_setopt(http_handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
 
   //if url is a websocket, tell curl that we should handle the connection manually
   if (starts_with(url, "wss://") || starts_with(url, "ws://")) {

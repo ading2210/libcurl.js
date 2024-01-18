@@ -6,6 +6,9 @@ This is an experimental port of [libcurl](https://curl.se/libcurl/) to WebAssemb
 - Fetch compatible API
 - End to end encryption between the browser and the destination server
 - Support for up to TLS 1.3
+- Support for tunneling HTTP/2 connections 
+- Bypass CORS restrictions
+- Low latency via multiplexing and reusing open connections
 
 ## Building:
 You can build this project by running the following commands:
@@ -70,7 +73,7 @@ This project is licensed under the GNU AGPL v3.
 
 ### Copyright Notice:
 ```
-ading2210/libcurl.js - A port of libcurl to WASM
+ading2210/libcurl.js - A port of libcurl to WASM for the browser.
 Copyright (C) 2023 ading2210
 
 This program is free software: you can redistribute it and/or modify

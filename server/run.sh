@@ -4,7 +4,10 @@
 
 set -e
 
-cd wisp_server
+SCRIPT_PATH=$(realpath $0)
+BASE_PATH=$(dirname $SCRIPT_PATH)
+
+cd $BASE_PATH/wisp_server
 if [ ! -d ".venv" ]; then
   python3 -m venv .venv
 fi

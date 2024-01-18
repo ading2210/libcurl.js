@@ -41,6 +41,12 @@ let r = await libcurl.fetch("https://ading.dev");
 console.log(await r.text());
 ```
 
+Most of the standard Fetch API's features are supported, with the exception of:
+- CORS enforcement
+- `FormData` or `URLSearchParams` as the request body
+- Sending credentials/cookies automatically
+- Caching
+
 ### Changing the Websocket URL:
 You can change the URL of the websocket proxy by using `libcurl.set_websocket`.
 ```js
@@ -53,8 +59,8 @@ The proxy server consists of a standard [Wisp](https://github.com/MercuryWorksho
 To host the proxy server, run the following commands:
 ```
 git clone https://github.com/ading2210/libcurl.js --recursive
-cd libcurl.js/server
-./run.sh
+cd libcurl.js
+STATIC=$(pwd)/client server/run.sh
 ```
 
 You can use the `HOST` and `PORT` environment variables to control the hostname and port that the proxy server listens on.

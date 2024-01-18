@@ -7,12 +7,12 @@ window.libcurl = (function() {
 //extra client code goes here
 /* __extra_libraries__ */
 
-const websocket_url = `wss://${location.hostname}/ws/`;
+var websocket_url = `wss://${location.hostname}/ws/`;
 var event_loop = null;
-var active_requests = 0
+var active_requests = 0;
 
 //a case insensitive dictionary for request headers
-class Headers {
+class HeadersDict {
   constructor(obj) {
     for (let key in obj) {
       this[key] = obj[key];
@@ -124,6 +124,7 @@ function create_response(response_data, response_info) {
 
   let response_obj = new Response(response_data, response_info);
   for (let key in response_info) {
+    if (key == "headers") continue;
     Object.defineProperty(response_obj, key, {
       writable: false,
       value: response_info[key]
@@ -132,20 +133,56 @@ function create_response(response_data, response_info) {
   return response_obj;
 }
 
-function create_options(params) {
+async function parse_body(data) {
+  let data_array = null;
+  if (typeof data === "string") {
+    data_array = new TextEncoder().encode(data);
+  }
+
+  else if (data instanceof Blob) {
+    let array_buffer = await data.arrayBuffer();
+    data_array = new Uint8Array(array_buffer);
+  }
+
+  //any typedarray
+  else if (data instanceof ArrayBuffer) {
+    //dataview objects
+    if (ArrayBuffer.isView(data) && data instanceof DataView) {
+      data_array = new Uint8Array(data.buffer);
+    }
+    //regular typed arrays
+    else if (ArrayBuffer.isView(data)) {
+      data_array = Uint8Array.from(data);
+    }
+    //regular arraybuffers
+    else {
+      data_array = new Uint8Array(data);
+    }
+  }
+
+  else if (data instanceof ReadableStream) {
+    let chunks = [];
+    for await (let chunk of data) {
+      chunks.push(chunk);
+    }
+    data_array = merge_arrays(chunks);
+  }
+
+  else {
+    throw "invalid data type to be sent";
+  }
+  return data_array;
+}
+
+async function create_options(params) {
   let body = null;
   if (params.body) {
-    if (is_str(params.body)) {
-      body = new TextEncoder().encode(params.body);
-    }
-    else {
-      body = Uint8Array.from(params);
-    }
+    body = await parse_body(params.body);
     params.body = true;
   }
 
   if (!params.headers) params.headers = {};
-  params.headers = new Headers(params.headers);
+  params.headers = new HeadersDict(params.headers);
 
   if (params.referer) {
     params.headers["Referer"] = params.referer;
@@ -157,9 +194,8 @@ function create_options(params) {
   return body;
 }
 
-function libcurl_fetch(url, params={}) {
-  let body = create_options(params);
-
+//wrap perform_request in a promise
+function perform_request_async(url, params, body) {
   return new Promise((resolve, reject) => {
     let chunks = [];
     let data_callback = (new_data) => {
@@ -176,11 +212,21 @@ function libcurl_fetch(url, params={}) {
       resolve(response_obj);
     }
     perform_request(url, params, data_callback, finish_callback, body);
-  })
+  });
+}
+
+async function libcurl_fetch(url, params={}) {
+  let body = await create_options(params);
+  return await perform_request_async(url, params, body);
 }
 
 function set_websocket_url(url) {
-  Module.websocket.url = url;
+  if (!Module.websocket) {
+    document.addEventListener("libcurl_load", () => {
+      set_websocket_url(url);
+    });
+  }
+  else Module.websocket.url = url;
 }
 
 function main() {
@@ -195,7 +241,8 @@ function main() {
 Module.onRuntimeInitialized = main;
 return {
   fetch: libcurl_fetch,
-  set_websocket: set_websocket_url
+  set_websocket: set_websocket_url,
+  wisp: _wisp_connections
 }
 
 })()

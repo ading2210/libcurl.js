@@ -18,7 +18,7 @@ for fragment_file in fragments_path.iterdir():
   for mode, patch_regex, patch_text, _ in matches:
     fragment_matches = re.findall(patch_regex, target_text)
     if not fragment_matches:
-      print(f"warning: regex did not match anything - '{patch_regex}'");
+      print(f"warning: regex did not match anything for '{patch_regex}'");
     if mode == "DELETE":
       target_text = re.sub(patch_regex, "", target_text)
     elif mode == "REPLACE":

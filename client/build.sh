@@ -2,15 +2,19 @@
 
 set -e
 
+#path definitions
 INCLUDE_DIR="build/curl-wasm/include/"
 LIB_DIR="build/curl-wasm/lib/"
 OUT_FILE="out/libcurl.js"
 ES6_FILE="out/libcurl_module.mjs"
 MODULE_FILE="out/emscripten_compiled.js"
+COMPILED_FILE="out/emscripten_compiled.wasm"
+WASM_FILE="out/libcurl.wasm"
 FRAGMENTS_DIR="fragments"
 WRAPPER_SOURCE="main.js"
 WISP_CLIENT="wisp_client"
 
+#compile options
 EXPORTED_FUNCS="_init_curl,_start_request,_tick_request,_active_requests,_free"
 RUNTIME_METHODS="addFunction,removeFunction,allocate,ALLOC_NORMAL"
 COMPILER_OPTIONS="-o $MODULE_FILE -lcurl -lssl -lcrypto -lcjson -lz -lbrotlidec -lbrotlicommon -lnghttp2 -I $INCLUDE_DIR -L $LIB_DIR"
@@ -18,7 +22,7 @@ EMSCRIPTEN_OPTIONS="-lwebsocket.js -sASSERTIONS=1 -sALLOW_TABLE_GROWTH -sALLOW_M
 
 if [ "$1" = "release" ]; then
   COMPILER_OPTIONS="-Oz -flto $COMPILER_OPTIONS"
-  EMSCRIPTEN_OPTIONS="-sSINGLE_FILE $EMSCRIPTEN_OPTIONS"
+  #EMSCRIPTEN_OPTIONS="-sSINGLE_FILE $EMSCRIPTEN_OPTIONS"
 else
   COMPILER_OPTIONS="$COMPILER_OPTIONS --profiling"
 fi
@@ -47,7 +51,7 @@ sed -i "/__extra_libraries__/r $WISP_CLIENT/wisp.js" $OUT_FILE
 sed -i "/__extra_libraries__/r ./messages.js" $OUT_FILE
 
 #apply patches
-python3 patcher.py $FRAGMENTS_DIR $OUT_FILE
+python3 scripts/patcher.py $FRAGMENTS_DIR $OUT_FILE
 
 #generate es6 module
 cp $OUT_FILE $ES6_FILE

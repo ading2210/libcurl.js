@@ -10,6 +10,13 @@ window.libcurl = (function() {
 var websocket_url = `wss://${location.hostname}/ws/`;
 var event_loop = null;
 var active_requests = 0;
+var wasm_ready = false;
+
+function check_loaded() {
+  if (!wasm_ready) {
+    throw new Error("wasm not loaded yet, please call libcurl.load_wasm first");
+  }
+}
 
 //a case insensitive dictionary for request headers
 class HeadersDict {
@@ -135,8 +142,12 @@ function create_response(response_data, response_info) {
   //create headers object
   Object.defineProperty(response_obj, "headers", {
     writable: false,
-    value: new Headers(response_info.headers)
+    value: new Headers()
   });
+  for (let header_name in response_info.headers) {
+    let header_value = response_info.headers[header_name];
+    response_obj.headers.append(header_name, header_value);
+  }
   
   return response_obj;
 }
@@ -224,11 +235,13 @@ function perform_request_async(url, params, body) {
 }
 
 async function libcurl_fetch(url, params={}) {
+  check_loaded();
   let body = await create_options(params);
   return await perform_request_async(url, params, body);
 }
 
 function set_websocket_url(url) {
+  check_loaded();
   if (!Module.websocket) {
     document.addEventListener("libcurl_load", () => {
       set_websocket_url(url);
@@ -239,6 +252,7 @@ function set_websocket_url(url) {
 
 function main() {
   console.log("emscripten module loaded");
+  wasm_ready = true;
   _init_curl();
   set_websocket_url(websocket_url);
 
@@ -246,10 +260,17 @@ function main() {
   document.dispatchEvent(load_event);
 }
 
+function load_wasm(url) {
+  wasmBinaryFile = url;
+  createWasm();
+  run();
+}
+
 Module.onRuntimeInitialized = main;
 return {
   fetch: libcurl_fetch,
   set_websocket: set_websocket_url,
+  load_wasm: load_wasm,
   wisp: _wisp_connections
 }
 

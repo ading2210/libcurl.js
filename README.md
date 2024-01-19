@@ -22,10 +22,10 @@ Make sure you have emscripten, git, and the various C build tools installed. The
 ## Javascript API:
 
 ### Importing the Library:
-To import the library, follow the build instructions in the previous section, and copy `client/out/libcurl.js` a directory of your choice. Then you can simply link to it using a script tag and you will be able to use libcurl.js in your projects. Deferring the script load is recommended because the JS file is too large to download immediately.
+To import the library, follow the build instructions in the previous section, and copy `client/out/libcurl.js` and `client/out/libcurl.wasm` to a directory of your choice. After the script is loaded, call `libcurl.load_wasm`, specifying the url of the `libcurl.wasm` file.
 
 ```html
-<script defer src="./out/libcurl.js"></script>
+<script defer src="./out/libcurl.js" onload="libcurl.load_wasm('/out/emscripten_compiled.wasm');"></script>
 ```
 
 To know when libcurl.js has finished loading, you can use the `libcurl_load` DOM event. 

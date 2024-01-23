@@ -19,6 +19,10 @@ cd libcurl.js/client
 ```
 Make sure you have emscripten, git, and the various C build tools installed. The build script will generate `client/out/libcurl.js` as well as `client/out/libcurl_module.mjs`, which is an ES6 module.
 
+You can supply the following arguments to the build script to control the build:
+- `release` - Use all optimizations.
+- `single_file` - Include the WASM binary in the outputted JS using base64.
+
 ## Javascript API:
 
 ### Importing the Library:

@@ -20,11 +20,16 @@ RUNTIME_METHODS="addFunction,removeFunction,allocate,ALLOC_NORMAL"
 COMPILER_OPTIONS="-o $MODULE_FILE -lcurl -lssl -lcrypto -lcjson -lz -lbrotlidec -lbrotlicommon -lnghttp2 -I $INCLUDE_DIR -L $LIB_DIR"
 EMSCRIPTEN_OPTIONS="-lwebsocket.js -sASSERTIONS=1 -sALLOW_TABLE_GROWTH -sALLOW_MEMORY_GROWTH -sEXPORTED_FUNCTIONS=$EXPORTED_FUNCS -sEXPORTED_RUNTIME_METHODS=$RUNTIME_METHODS"
 
-if [ "$1" = "release" ]; then
+if [[ "$*" == *"release"* ]]; then
   COMPILER_OPTIONS="-Oz -flto $COMPILER_OPTIONS"
-  #EMSCRIPTEN_OPTIONS="-sSINGLE_FILE $EMSCRIPTEN_OPTIONS"
+  echo "note: building with release optimizations"
 else
   COMPILER_OPTIONS="$COMPILER_OPTIONS --profiling"
+fi
+
+if [[ "$*" == *"single_file"* ]]; then
+  EMSCRIPTEN_OPTIONS="-sSINGLE_FILE $EMSCRIPTEN_OPTIONS"
+  echo "note: building as a single js file"
 fi
 
 #ensure deps are compiled
@@ -39,6 +44,7 @@ mkdir -p out
 COMPILE_CMD="emcc main.c $COMPILER_OPTIONS $EMSCRIPTEN_OPTIONS"
 echo $COMPILE_CMD
 $COMPILE_CMD
+mv $COMPILED_FILE $WASM_FILE || true
 
 #merge compiled emscripten module and wrapper code
 cp $WRAPPER_SOURCE $OUT_FILE

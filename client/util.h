@@ -1,0 +1,1 @@
+int starts_with(const char *a, const char *b);

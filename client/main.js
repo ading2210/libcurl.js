@@ -96,7 +96,7 @@ function perform_request(url, params, js_data_callback, js_end_callback, body=nu
 
   end_callback_ptr = Module.addFunction(end_callback, "vii");
   data_callback_ptr = Module.addFunction(data_callback, "vii");
-  _start_request(url_ptr, params_ptr, data_callback_ptr, end_callback_ptr, body_ptr, body_length);
+  let http_handle = _start_request(url_ptr, params_ptr, data_callback_ptr, end_callback_ptr, body_ptr, body_length);
   _free(params_ptr);
   
   active_requests ++;
@@ -112,6 +112,8 @@ function perform_request(url, params, js_data_callback, js_end_callback, body=nu
       }
     }, 0);
   }
+
+  return http_handle;
 }
 
 function merge_arrays(arrays) {
@@ -271,7 +273,8 @@ return {
   fetch: libcurl_fetch,
   set_websocket: set_websocket_url,
   load_wasm: load_wasm,
-  wisp: _wisp_connections
+  wisp: _wisp_connections,
+  WebSocket: CurlWebSocket
 }
 
 })()

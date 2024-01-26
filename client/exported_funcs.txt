@@ -1,0 +1,15 @@
+init_curl
+start_request
+tick_request
+active_requests
+
+recv_from_websocket
+send_to_websocket
+close_websocket
+cleanup_websocket
+get_result_size
+get_result_buffer
+get_result_code
+get_result_closed
+
+free

@@ -18,7 +18,7 @@ struct WSResult* recv_from_websocket(CURL* http_handle, int buffer_size) {
   result->buffer = buffer;
   result->res = (int) res;
   result->closed = (ws_meta->flags & CURLWS_CLOSE);
-
+  result->fragment = ws_meta->bytesleft;
   return result;
 }
 
@@ -54,4 +54,7 @@ int get_result_code (const struct WSResult* result) {
 }
 int get_result_closed (const struct WSResult* result) {
   return result->closed;
+}
+int get_result_fragment (const struct WSResult* result) {
+  return result->fragment;
 }

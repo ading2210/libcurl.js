@@ -32,7 +32,7 @@ class CurlWebSocket extends EventTarget {
     let finish_callback = (error, response_info) => {
       this.finish_callback(error, response_info);
     }
-    this.http_handle = perform_request(this.url, {_libcurl_verbose: 1}, data_callback, finish_callback, null);
+    this.http_handle = perform_request(this.url, {}, data_callback, finish_callback, null);
     this.recv_loop();
   }
 
@@ -43,6 +43,7 @@ class CurlWebSocket extends EventTarget {
 
     if (result_code == 0) { //CURLE_OK - data recieved 
       if (_get_result_closed(result_ptr)) {
+        //this.pass_buffer();
         this.close_callback();
         return;
       }
@@ -54,7 +55,7 @@ class CurlWebSocket extends EventTarget {
       _free(data_ptr);
       
       this.recv_buffer.push(data);
-      if (data_size !== buffer_size) { //message finished
+      if (data_size !== buffer_size && !_get_result_fragment(result_ptr)) { //message finished
         let full_data = merge_arrays(this.recv_buffer);
         this.recv_buffer = [];
         this.recv_callback(full_data);

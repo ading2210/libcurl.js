@@ -13,5 +13,6 @@ struct WSResult {
   int res;
   int buffer_size;
   int closed;
+  int fragment;
   char* buffer;
 };

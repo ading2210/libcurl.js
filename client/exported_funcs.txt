@@ -11,5 +11,6 @@ get_result_size
 get_result_buffer
 get_result_code
 get_result_closed
+get_result_fragment
 
 free

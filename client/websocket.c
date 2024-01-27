@@ -18,13 +18,16 @@ struct WSResult* recv_from_websocket(CURL* http_handle, int buffer_size) {
   result->buffer = buffer;
   result->res = (int) res;
   result->closed = (ws_meta->flags & CURLWS_CLOSE);
-  result->fragment = ws_meta->bytesleft;
+  result->is_text = (ws_meta->flags & CURLWS_TEXT);
+  result->bytes_left = ws_meta->bytesleft;
   return result;
 }
 
-int send_to_websocket(CURL* http_handle, const char* data, int data_len) {
+int send_to_websocket(CURL* http_handle, const char* data, int data_len, int is_text) {
   size_t sent;
-  CURLcode res = curl_ws_send(http_handle, data, data_len, &sent, 0, CURLWS_BINARY);
+  unsigned int flags = CURLWS_BINARY;
+  if (is_text) flags = CURLWS_TEXT;
+  CURLcode res = curl_ws_send(http_handle, data, data_len, &sent, 0, flags);
   return (int) res;
 }
 
@@ -55,6 +58,9 @@ int get_result_code (const struct WSResult* result) {
 int get_result_closed (const struct WSResult* result) {
   return result->closed;
 }
-int get_result_fragment (const struct WSResult* result) {
-  return result->fragment;
+int get_result_bytes_left (const struct WSResult* result) {
+  return result->bytes_left;
+}
+int get_result_is_text (const struct WSResult* result) {
+  return result->is_text;
 }

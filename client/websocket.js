@@ -55,10 +55,11 @@ class CurlWebSocket extends EventTarget {
       _free(data_ptr);
       
       this.recv_buffer.push(data);
-      if (data_size !== buffer_size && !_get_result_fragment(result_ptr)) { //message finished
+      if (data_size !== buffer_size && !_get_result_bytes_left(result_ptr)) { //message finished
         let full_data = merge_arrays(this.recv_buffer);
+        let is_text = _get_result_is_text(result_ptr)
         this.recv_buffer = [];
-        this.recv_callback(full_data);
+        this.recv_callback(full_data, is_text);
       }
     }
 
@@ -75,17 +76,25 @@ class CurlWebSocket extends EventTarget {
     }, 1);
   }
 
-  recv_callback(data) {
-    if (this.binaryType == "blob") {
-      data = new Blob(data);
-    }
-    else if (this.binaryType == "arraybuffer") {
-      data = data.buffer;
+  recv_callback(data, is_text=false) {
+    let converted;
+    if (is_text) {
+      converted = new TextDecoder().decode(data);
+      console.log(is_text);
     }
     else {
-      throw "invalid binaryType string";
+      if (this.binaryType == "blob") {
+        converted = new Blob(data);
+      }
+      else if (this.binaryType == "arraybuffer") {
+        converted = data.buffer;
+      }
+      else {
+        throw "invalid binaryType string";
+      }  
     }
-    let msg_event = new MessageEvent("message", {data: data});
+
+    let msg_event = new MessageEvent("message", {data: converted});
     this.onmessage(msg_event);
     this.dispatchEvent(msg_event);
   }
@@ -118,6 +127,7 @@ class CurlWebSocket extends EventTarget {
   }
 
   send(data) {
+    let is_text = false;
     if (this.status === this.CONNECTING) {
       throw new DOMException("ws not ready yet");
     }
@@ -128,6 +138,7 @@ class CurlWebSocket extends EventTarget {
     let data_array;
     if (typeof data === "string") {
       data_array = new TextEncoder().encode(data);
+      is_text = true;
     }
     else if (data instanceof Blob) {
       data.arrayBuffer().then(array_buffer => {
@@ -157,11 +168,24 @@ class CurlWebSocket extends EventTarget {
 
     let data_ptr = allocate_array(data_array);
     let data_len = data.length;
-    _send_to_websocket(this.http_handle, data_ptr, data_len);
+    _send_to_websocket(this.http_handle, data_ptr, data_len, is_text);
     _free(data_ptr);
   }
 
   close() {
     _close_websocket(this.http_handle);
+  }
+
+  get readyState() {
+    return this.status;
+  }
+  get bufferedAmount() {
+    return 0;
+  }
+  get protocol() {
+    return "";
+  }
+  get extensions() {
+    return "";
   }
 }

@@ -7,6 +7,7 @@ This is an experimental port of [libcurl](https://curl.se/libcurl/) to WebAssemb
 - End to end encryption between the browser and the destination server
 - Support for up to TLS 1.3
 - Support for tunneling HTTP/2 connections 
+- Support for proxying WebSockets
 - Bypass CORS restrictions
 - Low latency via multiplexing and reusing open connections
 
@@ -53,6 +54,21 @@ Most of the standard Fetch API's features are supported, with the exception of:
 - `FormData` or `URLSearchParams` as the request body
 - Sending credentials/cookies automatically
 - Caching
+
+### Creating WebSocket Connections:
+To use WebSockets, create a `libcurl.WebSocket` object, which works identically to the regular [WebSocket](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) object.
+```js
+let ws = new libcurl.WebSocket("wss://echo.websocket.org");
+ws.binaryType = "arraybuffer";
+ws.addEventListener("open", () => {
+  console.log("ws connected!");
+  ws.send("hello".repeat(128));
+});
+ws.addEventListener("message", (event) => {
+  let text = new TextDecoder().decode(event.data);
+  console.log(text);
+});
+```
 
 ### Changing the Websocket URL:
 You can change the URL of the websocket proxy by using `libcurl.set_websocket`.

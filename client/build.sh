@@ -10,8 +10,10 @@ ES6_FILE="out/libcurl_module.mjs"
 MODULE_FILE="out/emscripten_compiled.js"
 COMPILED_FILE="out/emscripten_compiled.wasm"
 WASM_FILE="out/libcurl.wasm"
+
+C_DIR="libcurl"
 FRAGMENTS_DIR="fragments"
-WRAPPER_SOURCE="main.js"
+JAVSCRIPT_DIR="javascript"
 WISP_CLIENT="wisp_client"
 
 #read exported functions
@@ -46,22 +48,22 @@ tools/generate_cert.sh
 rm -rf out
 mkdir -p out
 
-#compile the main c file - but only if the source has been modified
-COMPILE_CMD="emcc *.c $COMPILER_OPTIONS $EMSCRIPTEN_OPTIONS"
+#compile the main c file
+COMPILE_CMD="emcc $C_DIR/*.c $COMPILER_OPTIONS $EMSCRIPTEN_OPTIONS"
 echo $COMPILE_CMD
 $COMPILE_CMD
 mv $COMPILED_FILE $WASM_FILE || true
 
 #merge compiled emscripten module and wrapper code
-cp $WRAPPER_SOURCE $OUT_FILE
+cp $JAVSCRIPT_DIR/main.js $OUT_FILE
 sed -i "/__emscripten_output__/r $MODULE_FILE" $OUT_FILE
 rm $MODULE_FILE
 
 #add extra libraries
 sed -i "/__extra_libraries__/r $WISP_CLIENT/polyfill.js" $OUT_FILE
 sed -i "/__extra_libraries__/r $WISP_CLIENT/wisp.js" $OUT_FILE
-sed -i "/__extra_libraries__/r ./messages.js" $OUT_FILE
-sed -i "/__extra_libraries__/r ./websocket.js" $OUT_FILE
+sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/messages.js" $OUT_FILE
+sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/websocket.js" $OUT_FILE
 
 #apply patches
 python3 scripts/patcher.py $FRAGMENTS_DIR $OUT_FILE

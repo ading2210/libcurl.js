@@ -80,7 +80,6 @@ class CurlWebSocket extends EventTarget {
     let converted;
     if (is_text) {
       converted = new TextDecoder().decode(data);
-      console.log(is_text);
     }
     else {
       if (this.binaryType == "blob") {

@@ -3,18 +3,20 @@
 set -e
 
 #path definitions
-INCLUDE_DIR="build/curl-wasm/include/"
-LIB_DIR="build/curl-wasm/lib/"
-OUT_FILE="out/libcurl.js"
-ES6_FILE="out/libcurl_module.mjs"
-MODULE_FILE="out/emscripten_compiled.js"
-COMPILED_FILE="out/emscripten_compiled.wasm"
-WASM_FILE="out/libcurl.wasm"
-
+OUT_DIR="${OUT_DIR:=out}"
+BUILD_DIR="build"
 C_DIR="libcurl"
 FRAGMENTS_DIR="fragments"
 JAVSCRIPT_DIR="javascript"
 WISP_CLIENT="wisp_client"
+
+INCLUDE_DIR="$BUILD_DIR/curl-wasm/include/"
+LIB_DIR="$BUILD_DIR/curl-wasm/lib/"
+OUT_FILE="$OUT_DIR/libcurl.js"
+ES6_FILE="$OUT_DIR/libcurl.mjs"
+MODULE_FILE="$OUT_DIR/emscripten_compiled.js"
+COMPILED_FILE="$OUT_DIR/emscripten_compiled.wasm"
+WASM_FILE="$OUT_DIR/libcurl.wasm"
 
 #read exported functions
 EXPORTED_FUNCS=""
@@ -28,6 +30,22 @@ RUNTIME_METHODS="addFunction,removeFunction,allocate,ALLOC_NORMAL"
 COMPILER_OPTIONS="-o $MODULE_FILE -lcurl -lssl -lcrypto -lcjson -lz -lbrotlidec -lbrotlicommon -lnghttp2 -I $INCLUDE_DIR -L $LIB_DIR"
 EMSCRIPTEN_OPTIONS="-lwebsocket.js -sASSERTIONS=1 -sLLD_REPORT_UNDEFINED -sALLOW_TABLE_GROWTH -sALLOW_MEMORY_GROWTH -sEXPORTED_FUNCTIONS=$EXPORTED_FUNCS -sEXPORTED_RUNTIME_METHODS=$RUNTIME_METHODS"
 
+#clean output dir
+rm -rf $OUT_DIR
+mkdir -p $OUT_DIR
+
+if [[ "$*" == *"all"* ]]; then
+  mkdir -p $OUT_DIR/release
+  mkdir -p $OUT_DIR/single_file
+  OUT_DIR=$OUT_DIR/release ./build.sh release
+  OUT_DIR=$OUT_DIR/single_file ./build.sh release single_file
+  mv $OUT_DIR/release/* $OUT_DIR
+  mv $OUT_DIR/single_file/* $OUT_DIR
+  rm -rf $OUT_DIR/release
+  rm -rf $OUT_DIR/single_file
+  exit 0
+fi
+
 if [[ "$*" == *"release"* ]]; then
   COMPILER_OPTIONS="-Oz -flto $COMPILER_OPTIONS"
   echo "note: building with release optimizations"
@@ -37,16 +55,14 @@ fi
 
 if [[ "$*" == *"single_file"* ]]; then
   EMSCRIPTEN_OPTIONS="-sSINGLE_FILE $EMSCRIPTEN_OPTIONS"
+  OUT_FILE="$OUT_DIR/libcurl_full.js"
+  ES6_FILE="$OUT_DIR/libcurl_full.mjs"
   echo "note: building as a single js file"
 fi
 
 #ensure deps are compiled
 tools/all_deps.sh
 tools/generate_cert.sh
-
-#clean output dir
-rm -rf out
-mkdir -p out
 
 #compile the main c file
 COMPILE_CMD="emcc $C_DIR/*.c $COMPILER_OPTIONS $EMSCRIPTEN_OPTIONS"

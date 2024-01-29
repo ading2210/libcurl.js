@@ -1,8 +1,8 @@
 {
   "name": "libcurl.js",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "An experimental port of libcurl to WebAssembly for use in the browser.",
-  "main": "index.js",
+  "main": "libcurl.mjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

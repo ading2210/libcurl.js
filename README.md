@@ -23,9 +23,9 @@ Make sure you have emscripten, git, and the various C build tools installed. The
 sudo apt install make cmake emscripten autoconf automake libtool pkg-config wget xxd
 ```
 
-The build script will generate `client/out/libcurl.js` as well as `client/out/libcurl_module.mjs`, which is an ES6 module. You can supply the following arguments to the build script to control the build:
+The build script will generate `client/out/libcurl.js` as well as `client/out/libcurl.mjs`, which is an ES6 module. You can supply the following arguments to the build script to control the build:
 - `release` - Use all optimizations.
-- `single_file` - Include the WASM binary in the outputted JS using base64.
+- `single_file` - Include the WASM binary in the outputted JS using base64. 
 - `all` - Build twice, once normally, and once as a single file.
 
 ## Javascript API:
@@ -34,12 +34,19 @@ The build script will generate `client/out/libcurl.js` as well as `client/out/li
 To import the library, follow the build instructions in the previous section, and copy `client/out/libcurl.js` and `client/out/libcurl.wasm` to a directory of your choice. After the script is loaded, call `libcurl.load_wasm`, specifying the url of the `libcurl.wasm` file.
 
 ```html
-<script defer src="./out/libcurl.js" onload="libcurl.load_wasm('/out/emscripten_compiled.wasm');"></script>
+<script defer src="./out/libcurl.js" onload="libcurl.load_wasm('/out/libcurl.wasm');"></script>
+```
+
+Alternatively, prebuilt versions can be found on NPM and jsDelivr. You can use the following URLs to load libcurl.js from a third party CDN.
+```
+https://cdn.jsdelivr.net/npm/libcurl.js@latest/libcurl.js
+https://cdn.jsdelivr.net/npm/libcurl.js@latest/libcurl.wasm
 ```
 
 To know when libcurl.js has finished loading, you can use the `libcurl_load` DOM event. 
 ```js
 document.addEventListener("libcurl_load", ()=>{
+  libcurl.set_websocket(`wss://${location.hostname}/ws/`);
   console.log("libcurl.js ready!");
 });
 ```
@@ -63,14 +70,12 @@ Most of the standard Fetch API's features are supported, with the exception of:
 To use WebSockets, create a `libcurl.WebSocket` object, which works identically to the regular [WebSocket](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) object.
 ```js
 let ws = new libcurl.WebSocket("wss://echo.websocket.org");
-ws.binaryType = "arraybuffer";
 ws.addEventListener("open", () => {
   console.log("ws connected!");
   ws.send("hello".repeat(128));
 });
 ws.addEventListener("message", (event) => {
-  let text = new TextDecoder().decode(event.data);
-  console.log(text);
+  console.log(event.data);
 });
 ```
 
@@ -79,6 +84,7 @@ You can change the URL of the websocket proxy by using `libcurl.set_websocket`.
 ```js
 libcurl.set_websocket("ws://localhost:6001/");
 ```
+If the websocket proxy URL is not set and one of the other API functions is called, an error will be thrown.
 
 ## Proxy Server:
 The proxy server consists of a standard [Wisp](https://github.com/MercuryWorkshop/wisp-protocol) server, allowing multiple TCP connections to share the same websocket.

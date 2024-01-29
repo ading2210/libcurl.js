@@ -3,6 +3,7 @@
 class CurlWebSocket extends EventTarget {
   constructor(url, protocols=[]) {
     super();
+    check_loaded();
     if (!url.startsWith("wss://") && !url.startsWith("ws://")) {
       throw new SyntaxError("invalid url");
     }

@@ -1,9 +1,27 @@
-//everything is wrapped in a function to prevent emscripten from polluting the global scope
-window.libcurl = (function() {
+/*
+ading2210/libcurl.js - A port of libcurl to WASM for the browser.
+Copyright (C) 2023 ading2210
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
 
 if (typeof window === "undefined") {
   throw new Error("NodeJS is not supported. This only works inside the browser.");
 }
+
+//everything is wrapped in a function to prevent emscripten from polluting the global scope
+window.libcurl = (function() {
 
 //emscripten compiled code is inserted here
 /* __emscripten_output__ */
@@ -11,7 +29,7 @@ if (typeof window === "undefined") {
 //extra client code goes here
 /* __extra_libraries__ */
 
-var websocket_url = `wss://${location.hostname}/ws/`;
+var websocket_url = null;
 var event_loop = null;
 var active_requests = 0;
 var wasm_ready = false;
@@ -19,6 +37,9 @@ var wasm_ready = false;
 function check_loaded() {
   if (!wasm_ready) {
     throw new Error("wasm not loaded yet, please call libcurl.load_wasm first");
+  }
+  if (!websocket_url) {
+    throw new Error("websocket proxy url not set, please call libcurl.set_websocket");
   }
 }
 
@@ -48,10 +69,6 @@ class HeadersDict {
     this[prop] = value;
     return true;
   }
-}
-
-function is_str(obj) {
-  return typeof obj === 'string' || obj instanceof String;
 }
 
 function allocate_str(str) {
@@ -247,7 +264,7 @@ async function libcurl_fetch(url, params={}) {
 }
 
 function set_websocket_url(url) {
-  check_loaded();
+  websocket_url = url;
   if (!Module.websocket) {
     document.addEventListener("libcurl_load", () => {
       set_websocket_url(url);
@@ -257,7 +274,6 @@ function set_websocket_url(url) {
 }
 
 function main() {
-  console.log("emscripten module loaded");
   wasm_ready = true;
   _init_curl();
   set_websocket_url(websocket_url);

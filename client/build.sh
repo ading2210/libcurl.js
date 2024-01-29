@@ -82,7 +82,7 @@ sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/messages.js" $OUT_FILE
 sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/websocket.js" $OUT_FILE
 
 #apply patches
-python3 scripts/patcher.py $FRAGMENTS_DIR $OUT_FILE
+python3 tools/patch_js.py $FRAGMENTS_DIR $OUT_FILE
 
 #generate es6 module
 cp $OUT_FILE $ES6_FILE

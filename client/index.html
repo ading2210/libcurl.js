@@ -6,6 +6,7 @@
     <script defer src="./out/libcurl.js" onload="libcurl.load_wasm('/out/libcurl.wasm');"></script>
     <script>
       document.addEventListener("libcurl_load", ()=>{
+        libcurl.set_websocket(`wss://${location.hostname}/ws/`);
         console.log("libcurl.js ready!");
       });
     </script>

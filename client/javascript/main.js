@@ -1,6 +1,10 @@
 //everything is wrapped in a function to prevent emscripten from polluting the global scope
 window.libcurl = (function() {
 
+if (typeof window === "undefined") {
+  throw new Error("NodeJS is not supported. This only works inside the browser.");
+}
+
 //emscripten compiled code is inserted here
 /* __emscripten_output__ */
 

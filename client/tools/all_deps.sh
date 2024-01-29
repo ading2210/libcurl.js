@@ -2,6 +2,7 @@
 
 #build all deps
 
+set -e
 mkdir -p build
 
 OPENSSL_PREFIX=$(realpath build/openssl-wasm)

@@ -18,11 +18,15 @@ git clone https://github.com/ading2210/libcurl.js --recursive
 cd libcurl.js/client
 ./build.sh
 ```
-Make sure you have emscripten, git, and the various C build tools installed. The build script will generate `client/out/libcurl.js` as well as `client/out/libcurl_module.mjs`, which is an ES6 module.
+Make sure you have emscripten, git, and the various C build tools installed. The only OS supported for building libcurl.js is Linux. On Debian-based systems, you can run the following command to install all the dependencies:
+```
+sudo apt install make cmake emscripten autoconf automake libtool pkg-config wget xxd
+```
 
-You can supply the following arguments to the build script to control the build:
+The build script will generate `client/out/libcurl.js` as well as `client/out/libcurl_module.mjs`, which is an ES6 module. You can supply the following arguments to the build script to control the build:
 - `release` - Use all optimizations.
 - `single_file` - Include the WASM binary in the outputted JS using base64.
+
 
 ## Javascript API:
 

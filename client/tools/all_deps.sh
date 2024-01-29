@@ -24,11 +24,11 @@ fi
 if [ ! -d $BROTLI_PREFIX ]; then
   tools/brotli.sh
 fi
-if [ ! -d $CURL_PREFIX ]; then
-  tools/curl.sh
-fi
 if [ ! -d $NGHTTP2_PREFIX ]; then
   tools/nghttp2.sh
+fi
+if [ ! -d $CURL_PREFIX ]; then
+  tools/curl.sh
 fi
 
 cp -r $OPENSSL_PREFIX/* $CURL_PREFIX

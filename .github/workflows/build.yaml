@@ -21,6 +21,6 @@ jobs:
       - name: upload img
         uses: actions/upload-artifact@v4
         with:
-          name: out
+          name: libcurl
           path: client/out/*
           compression-level: 9

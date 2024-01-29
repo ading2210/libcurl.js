@@ -26,7 +26,7 @@ sudo apt install make cmake emscripten autoconf automake libtool pkg-config wget
 The build script will generate `client/out/libcurl.js` as well as `client/out/libcurl_module.mjs`, which is an ES6 module. You can supply the following arguments to the build script to control the build:
 - `release` - Use all optimizations.
 - `single_file` - Include the WASM binary in the outputted JS using base64.
-
+- `all` - Build twice, once normally, and once as a single file.
 
 ## Javascript API:
 

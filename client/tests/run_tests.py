@@ -9,7 +9,13 @@ from selenium.webdriver.support import expected_conditions as EC
 class JSTest(unittest.TestCase):
   def setUp(self):
     options = webdriver.ChromeOptions()
+    options.add_argument("start-maximized")
+    options.add_argument("enable-automation")
     options.add_argument("--headless")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.addArguments("--disable-browser-side-navigation")
+    options.addArguments("--disable-gpu")
     options.set_capability("goog:loggingPrefs", {"browser": "ALL"})
 
     self.browser = webdriver.Chrome(options=options)

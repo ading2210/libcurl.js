@@ -8,6 +8,8 @@ jobs:
     steps:
       - name: download repo
         uses: actions/checkout@v4
+        with:
+          submodules: 'true'
       
       - name: install deps
         run: | 

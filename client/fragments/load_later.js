@@ -1,13 +1,16 @@
 /* REPLACE
 var asm ?= ?createWasm\(\);
 */
-var asm = null;
+if (isDataURI(wasmBinaryFile)) var asm = createWasm();
+else var asm = null;
 
 /* REPLACE
 var wasmExports ?= ?createWasm\(\);
 */
-var wasmExports = null;
+if (isDataURI(wasmBinaryFile)) var wasmExports = createWasm();
+else var wasmExports = null;
 
-/* DELETE
+/* REPLACE
 run\(\);\n\n
 */
+if (isDataURI(wasmBinaryFile)) run();

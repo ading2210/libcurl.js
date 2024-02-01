@@ -3,7 +3,7 @@
   <head>
     <link rel="icon" href="data:;base64,=">
 
-    <script defer src="./out/libcurl.js" onload="libcurl.load_wasm('/out/libcurl.wasm');"></script>
+    <script defer src="./out/libcurl_full.js"></script>
     <script>
       document.addEventListener("libcurl_load", ()=>{
         libcurl.set_websocket(`wss://${location.hostname}/ws/`);

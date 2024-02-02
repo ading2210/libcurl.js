@@ -84,7 +84,17 @@ You can change the URL of the websocket proxy by using `libcurl.set_websocket`.
 ```js
 libcurl.set_websocket("ws://localhost:6001/");
 ```
-If the websocket proxy URL is not set and one of the other API functions is called, an error will be thrown.
+If the websocket proxy URL is not set and one of the other API functions is called, an error will be thrown. Note that this URL must end with a trailing slash.
+
+### Getting Libcurl's Output:
+If you want more information about a connection, you can pass the `_libcurl_verbose` argument to the `libcurl.fetch` function.
+```js
+await libcurl.fetch("https://example.com", {_libcurl_verbose: 1});
+```
+By default this will print the output to the browser console, but you can set `libcurl.stdout` and `libcurl.stderr` to intercept these messages. This callback will be executed on every line of text that libcurl outputs.
+```js
+libcurl.stderr = (text) => {document.body.innerHTML += text};
+```
 
 ## Proxy Server:
 The proxy server consists of a standard [Wisp](https://github.com/MercuryWorkshop/wisp-protocol) server, allowing multiple TCP connections to share the same websocket.
@@ -93,7 +103,7 @@ To host the proxy server, run the following commands:
 ```
 git clone https://github.com/ading2210/libcurl.js --recursive
 cd libcurl.js
-STATIC=$(pwd)/client server/run.sh
+server/run.sh --static=./client
 ```
 
 You can use the `HOST` and `PORT` environment variables to control the hostname and port that the proxy server listens on.

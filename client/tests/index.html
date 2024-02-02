@@ -18,15 +18,12 @@
         }
       }
 
-      let script = document.createElement("script");
-      script.src = "/tests/scripts/" + location.hash.substring(1);
-      script.async = false;
-      script.defer = false;
-      document.head.append(script);
     
       document.addEventListener("libcurl_load", async ()=>{
         try {
           libcurl.set_websocket(`ws://localhost:6001/ws/`);
+          let r = await fetch("/tests/scripts/" + location.hash.substring(1));
+          eval(await r.text());
           await test();
           create_flag("success");
         }

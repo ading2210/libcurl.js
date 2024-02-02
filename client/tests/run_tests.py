@@ -14,8 +14,8 @@ class JSTest(unittest.TestCase):
     options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-    options.addArguments("--disable-browser-side-navigation")
-    options.addArguments("--disable-gpu")
+    options.add_argument("--disable-browser-side-navigation")
+    options.add_argument("--disable-gpu")
     options.set_capability("goog:loggingPrefs", {"browser": "ALL"})
 
     self.browser = webdriver.Chrome(options=options)
@@ -45,6 +45,9 @@ class JSTest(unittest.TestCase):
   
   def test_websocket(self):
     self.run_test("test_websocket.js")
+  
+  def test_redirect_out(self):
+    self.run_test("redirect_out.js")
 
 if __name__ == "__main__":
   unittest.main()

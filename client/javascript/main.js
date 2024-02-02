@@ -294,7 +294,11 @@ return {
   set_websocket: set_websocket_url,
   load_wasm: load_wasm,
   wisp: _wisp_connections,
-  WebSocket: CurlWebSocket
+  WebSocket: CurlWebSocket,
+  get stdout() {return out},
+  set stdout(callback) {out = callback},
+  get stderr() {return err},
+  set stderr(callback) {err = callback}
 }
 
 })()

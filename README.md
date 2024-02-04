@@ -20,7 +20,7 @@ cd libcurl.js/client
 ```
 Make sure you have emscripten, git, and the various C build tools installed. The only OS supported for building libcurl.js is Linux. On Debian-based systems, you can run the following command to install all the dependencies:
 ```
-sudo apt install make cmake emscripten autoconf automake libtool pkg-config wget xxd
+sudo apt install make cmake emscripten autoconf automake libtool pkg-config wget xxd jq
 ```
 
 The build script will generate `client/out/libcurl.js` as well as `client/out/libcurl.mjs`, which is an ES6 module. You can supply the following arguments to the build script to control the build:
@@ -51,7 +51,7 @@ document.addEventListener("libcurl_load", ()=>{
 });
 ```
 
-Once loaded, there will be a `window.libcurl` object which includes all the API functions.
+Once loaded, there will be a `window.libcurl` object which includes all the API functions. The `libcurl.ready` property can also be used to know if the WASM has loaded.
 
 ### Making HTTP Requests:
 To perform HTTP requests, use `libcurl.fetch`, which takes the same arguments as the browser's regular `fetch` function. Like the standard Fetch API, `libcurl.fetch` will also return a `Response` object.
@@ -96,6 +96,9 @@ By default this will print the output to the browser console, but you can set `l
 libcurl.stderr = (text) => {document.body.innerHTML += text};
 ```
 
+### Getting Version Info:
+You can get version information from the `libcurl.version` object. This object will also contain the versions of all the C libraries that libcurl.js uses. `libcurl.version.lib` returns the version of libcurl.js itself. 
+
 ## Proxy Server:
 The proxy server consists of a standard [Wisp](https://github.com/MercuryWorkshop/wisp-protocol) server, allowing multiple TCP connections to share the same websocket.
 
@@ -106,7 +109,7 @@ cd libcurl.js
 server/run.sh --static=./client
 ```
 
-You can use the `HOST` and `PORT` environment variables to control the hostname and port that the proxy server listens on.
+For a full list of server arguments, see the [wisp-server-python documentation](https://github.com/MercuryWorkshop/wisp-server-python).
 
 ## Copyright:
 This project is licensed under the GNU AGPL v3.

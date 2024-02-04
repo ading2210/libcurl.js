@@ -33,12 +33,14 @@ var websocket_url = null;
 var event_loop = null;
 var active_requests = 0;
 var wasm_ready = false;
+var version_dict = null;
+const libcurl_version = "__library_version__";
 
-function check_loaded() {
+function check_loaded(check_websocket) {
   if (!wasm_ready) {
     throw new Error("wasm not loaded yet, please call libcurl.load_wasm first");
   }
-  if (!websocket_url) {
+  if (!websocket_url && check_websocket) {
     throw new Error("websocket proxy url not set, please call libcurl.set_websocket");
   }
 }
@@ -258,7 +260,7 @@ function perform_request_async(url, params, body) {
 }
 
 async function libcurl_fetch(url, params={}) {
-  check_loaded();
+  check_loaded(true);
   let body = await create_options(params);
   return await perform_request_async(url, params, body);
 }
@@ -271,6 +273,18 @@ function set_websocket_url(url) {
     });
   }
   else Module.websocket.url = url;
+}
+
+function get_version() {
+  if (!wasm_ready) return null;
+  if (version_dict) return version_dict;
+
+  let version_ptr = _get_version();
+  let version_str = UTF8ToString(version_ptr);
+  _free(version_ptr);
+  version_dict = JSON.parse(version_str);
+  version_dict.lib = libcurl_version;
+  return version_dict;
 }
 
 function main() {
@@ -295,10 +309,13 @@ return {
   load_wasm: load_wasm,
   wisp: _wisp_connections,
   WebSocket: CurlWebSocket,
+  
+  get version() {return get_version()},
   get stdout() {return out},
   set stdout(callback) {out = callback},
   get stderr() {return err},
-  set stderr(callback) {err = callback}
+  set stderr(callback) {err = callback},
+  get ready() {return wasm_ready}
 }
 
 })()

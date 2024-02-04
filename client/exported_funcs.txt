@@ -3,6 +3,8 @@ start_request
 tick_request
 active_requests
 
+get_version
+
 recv_from_websocket
 send_to_websocket
 close_websocket

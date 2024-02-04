@@ -22,7 +22,7 @@ jobs:
       
       - name: run tests
         working-directory: ./client
-        run: ./tests/run.sh || true
+        run: ./tests/run.sh
 
       - name: upload img
         uses: actions/upload-artifact@v4

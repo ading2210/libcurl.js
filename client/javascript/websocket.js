@@ -1,7 +1,7 @@
 //class for custom websocket
 
 class CurlWebSocket extends EventTarget {
-  constructor(url, protocols=[]) {
+  constructor(url, protocols=[], websocket_debug=false) {
     super();
     check_loaded(true);
     if (!url.startsWith("wss://") && !url.startsWith("ws://")) {
@@ -12,6 +12,7 @@ class CurlWebSocket extends EventTarget {
     this.protocols = protocols;
     this.binaryType = "blob";
     this.recv_buffer = [];
+    this.websocket_debug = websocket_debug;
 
     //legacy event handlers
     this.onopen = () => {};
@@ -33,7 +34,16 @@ class CurlWebSocket extends EventTarget {
     let finish_callback = (error, response_info) => {
       this.finish_callback(error, response_info);
     }
-    this.http_handle = perform_request(this.url, {}, data_callback, finish_callback, null);
+    let options = {};
+    if (this.protocols) {
+      options.headers = {
+        "Sec-Websocket-Protocol": this.protocols.join(", "),
+      };
+    }
+    if (this.websocket_debug) {
+      options._libcurl_verbose = 1;
+    }
+    this.http_handle = perform_request(this.url, options, data_callback, finish_callback, null);
     this.recv_loop();
   }
 
@@ -134,7 +144,7 @@ class CurlWebSocket extends EventTarget {
     if (this.status === this.CLOSED) {
       return;
     }
-    
+
     let data_array;
     if (typeof data === "string") {
       data_array = new TextEncoder().encode(data);
@@ -153,14 +163,14 @@ class CurlWebSocket extends EventTarget {
       if (ArrayBuffer.isView(data) && data instanceof DataView) {
         data_array = new Uint8Array(data.buffer);
       }
-      //regular typed arrays
-      else if (ArrayBuffer.isView(data)) {
-        data_array = Uint8Array.from(data);
-      }
       //regular arraybuffers
       else {
         data_array = new Uint8Array(data);
       }
+    }
+    //regular typed arrays
+    else if (ArrayBuffer.isView(data)) {
+      data_array = Uint8Array.from(data);
     }
     else {
       throw "invalid data type to be sent";

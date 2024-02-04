@@ -1,6 +1,6 @@
 {
   "name": "libcurl.js",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "An experimental port of libcurl to WebAssembly for use in the browser.",
   "main": "libcurl.mjs",
   "scripts": {

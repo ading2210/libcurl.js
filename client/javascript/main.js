@@ -153,6 +153,9 @@ function merge_arrays(arrays) {
 function create_response(response_data, response_info) {
   response_info.ok = response_info.status >= 200 && response_info.status < 300;
   response_info.statusText = status_messages[response_info.status] || "";
+  if (response_info.status === 204 || response_info.status === 205) {
+    response_data = null;
+  }
 
   //construct base response object
   let response_obj = new Response(response_data, response_info);

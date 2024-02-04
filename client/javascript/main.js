@@ -310,12 +310,14 @@ return {
   wisp: _wisp_connections,
   WebSocket: CurlWebSocket,
   
+  get copyright() {return copyright_notice},
   get version() {return get_version()},
+  get ready() {return wasm_ready},
+
   get stdout() {return out},
   set stdout(callback) {out = callback},
   get stderr() {return err},
-  set stderr(callback) {err = callback},
-  get ready() {return wasm_ready}
+  set stderr(callback) {err = callback}
 }
 
 })()

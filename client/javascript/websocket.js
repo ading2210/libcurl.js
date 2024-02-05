@@ -50,6 +50,7 @@ class CurlWebSocket extends EventTarget {
   recv() {
     let buffer_size = 64*1024;
     let result_ptr = _recv_from_websocket(this.http_handle, buffer_size);
+    let data_ptr = _get_result_buffer(result_ptr);
     let result_code = _get_result_code(result_ptr);
 
     if (result_code == 0) { //CURLE_OK - data recieved 
@@ -60,10 +61,8 @@ class CurlWebSocket extends EventTarget {
       }
 
       let data_size = _get_result_size(result_ptr);
-      let data_ptr = _get_result_buffer(result_ptr);
       let data_heap = Module.HEAPU8.subarray(data_ptr, data_ptr + data_size);
       let data = new Uint8Array(data_heap);
-      _free(data_ptr);
       
       this.recv_buffer.push(data);
       if (data_size !== buffer_size && !_get_result_bytes_left(result_ptr)) { //message finished
@@ -77,7 +76,8 @@ class CurlWebSocket extends EventTarget {
     if (result_code == 52) { //CURLE_GOT_NOTHING - socket closed
       this.close_callback();
     }
-
+    
+    _free(data_ptr);
     _free(result_ptr);
   }
 

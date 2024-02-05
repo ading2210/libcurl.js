@@ -255,6 +255,7 @@ function perform_request_async(url, params, body) {
         return;
       }
       let response_data = merge_arrays(chunks);
+      chunks = null;
       let response_obj = create_response(response_data, response_info);
       resolve(response_obj);
     }

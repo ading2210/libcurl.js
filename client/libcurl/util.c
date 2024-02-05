@@ -32,5 +32,6 @@ char* get_version() {
   cJSON_AddItemToObject(version_json, "protocols", protocols_array);
 
   char* version_json_str = cJSON_Print(version_json);
+  cJSON_Delete(version_json);
   return version_json_str;
 }

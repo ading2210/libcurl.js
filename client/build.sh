@@ -91,4 +91,4 @@ python3 tools/patch_js.py $FRAGMENTS_DIR $OUT_FILE
 
 #generate es6 module
 cp $OUT_FILE $ES6_FILE
-sed -i 's/window.libcurl/export const libcurl/' $ES6_FILE
+sed -i 's/const libcurl/export const libcurl/' $ES6_FILE

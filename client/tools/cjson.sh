@@ -11,7 +11,7 @@ mkdir -p $PREFIX
 
 cd build
 rm -rf cjson
-git clone -b master --depth=1 https://github.com/DaveGamble/cJSON cjson
+git clone -b v1.7.17 --depth=1 https://github.com/DaveGamble/cJSON cjson
 cd cjson
 
 sed -i 's/-fstack-protector-strong//' Makefile

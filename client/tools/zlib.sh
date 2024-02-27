@@ -10,7 +10,7 @@ PREFIX=$(realpath build/zlib-wasm)
 
 cd build
 rm -rf zlib
-git clone -b master --depth=1 https://github.com/madler/zlib
+git clone -b v1.3.1 --depth=1 https://github.com/madler/zlib
 cd zlib
 
 emconfigure ./configure --static

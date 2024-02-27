@@ -1,0 +1,28 @@
+name: build
+run-name: Build libcurl.js
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: download repo
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+      
+      - name: install deps
+        run: | 
+          sudo apt-get update
+          sudo apt-get install -y make cmake emscripten autoconf automake libtool pkg-config wget xxd python3-selenium python3-websockets
+      
+      - name: run build
+        working-directory: ./client
+        run: ./build.sh all
+
+      - name: upload img
+        uses: actions/upload-artifact@v4
+        with:
+          name: libcurl
+          path: client/out/*
+          compression-level: 9

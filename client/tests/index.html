@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="icon" href="data:;base64,=">
+
+    <script defer src="/out/libcurl.js" onload="libcurl.load_wasm('/out/libcurl.wasm');"></script>
+    <script>
+      function create_flag(result) {
+        let element = document.createElement("div");
+        element.setAttribute("result", result);
+        element.className = "flag";
+        document.body.append(element);
+      }
+
+      function assert(condition, message) {
+        if (!condition) {
+          throw new Error(message || "Assertion failed");
+        }
+      }
+
+    
+      document.addEventListener("libcurl_load", async ()=>{
+        try {
+          libcurl.set_websocket(`ws://localhost:6001/ws/`);
+          let r = await fetch("/tests/scripts/" + location.hash.substring(1));
+          eval(await r.text());
+          await test();
+          create_flag("success");
+        }
+        catch (e) {
+          console.error(e.stack || e);
+          create_flag("error");
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <p>libcurl.js unit test runner</p>
+  </body>
+</html>

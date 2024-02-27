@@ -3,11 +3,12 @@
   <head>
     <link rel="icon" href="data:;base64,=">
 
-    <script defer src="./out/libcurl.js"></script>
+    <script defer src="./out/libcurl.js" onload="libcurl.load_wasm('/out/libcurl.wasm');"></script>
     <script>
       document.addEventListener("libcurl_load", ()=>{
-        console.log("libcurl.js ready!");
-      })
+        libcurl.set_websocket(location.href.replace("http", "ws"));
+        console.log(`loaded libcurl.js v${libcurl.version.lib}`);
+      });
     </script>
   </head>
   <body>

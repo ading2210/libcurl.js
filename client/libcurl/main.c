@@ -10,28 +10,19 @@
 #include "cacert.h"
 #include "curl/multi.h"
 
-typedef void(*DataCallback)(char* chunk_ptr, int chunk_size);
-typedef void(*EndCallback)(int error, char* response_json);
+#include "util.h"
+#include "types.h"
+
 void finish_request(CURLMsg *curl_msg);
 
 #define ERROR_REDIRECT_DISALLOWED -1
 
 CURLM *multi_handle;
 int request_active = 0;
+struct curl_blob cacert_blob;
 
-struct RequestInfo {
-  int abort_on_redirect;
-  struct CURLMsg *curl_msg;
-  struct curl_slist* headers_list;
-  EndCallback end_callback;
-};
-
-int starts_with(const char *a, const char *b) {
-  return strncmp(a, b, strlen(b)) == 0;
-}
-
-int write_function(void *data, size_t size, size_t nmemb, DataCallback data_callback) {
-  long real_size = size * nmemb;
+size_t write_function(void *data, size_t size, size_t nmemb, DataCallback data_callback) {
+  size_t real_size = size * nmemb;
   char* chunk = malloc(real_size);
   memcpy(chunk, data, real_size);
   data_callback(chunk, real_size);
@@ -57,13 +48,13 @@ void tick_request() {
   }
 }
 
-void start_request(const char* url, const char* json_params, DataCallback data_callback, EndCallback end_callback, const char* body, int body_length) {
+CURL* start_request(const char* url, const char* json_params, DataCallback data_callback, EndCallback end_callback, const char* body, int body_length) {
   CURL *http_handle = curl_easy_init();  
   int abort_on_redirect = 0;
+  int prevent_cleanup = 0;
  
   curl_easy_setopt(http_handle, CURLOPT_URL, url);
-  curl_easy_setopt(http_handle, CURLOPT_CAINFO, "/cacert.pem");
-  curl_easy_setopt(http_handle, CURLOPT_CAPATH, "/cacert.pem");
+  curl_easy_setopt(http_handle, CURLOPT_CAINFO_BLOB , cacert_blob);
 
   //callbacks to pass the response data back to js
   curl_easy_setopt(http_handle, CURLOPT_WRITEFUNCTION, &write_function);
@@ -72,10 +63,12 @@ void start_request(const char* url, const char* json_params, DataCallback data_c
   //some default options
   curl_easy_setopt(http_handle, CURLOPT_FOLLOWLOCATION, 1);
   curl_easy_setopt(http_handle, CURLOPT_ACCEPT_ENCODING, "");
+  curl_easy_setopt(http_handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
 
   //if url is a websocket, tell curl that we should handle the connection manually
   if (starts_with(url, "wss://") || starts_with(url, "ws://")) {
     curl_easy_setopt(http_handle, CURLOPT_CONNECT_ONLY, 2L);
+    prevent_cleanup = 1;
   }
 
   //parse json options
@@ -134,9 +127,12 @@ void start_request(const char* url, const char* json_params, DataCallback data_c
   request_info->curl_msg = NULL;
   request_info->headers_list = headers_list;
   request_info->end_callback = end_callback;
+  request_info->prevent_cleanup = prevent_cleanup;
   curl_easy_setopt(http_handle, CURLOPT_PRIVATE, request_info);
   
   curl_multi_add_handle(multi_handle, http_handle);
+
+  return http_handle;
 }
 
 void finish_request(CURLMsg *curl_msg) {
@@ -184,23 +180,22 @@ void finish_request(CURLMsg *curl_msg) {
   
   //clean up curl
   curl_slist_free_all(request_info->headers_list);
+  (*request_info->end_callback)(error, response_json_str);
+  if (request_info->prevent_cleanup) {
+    return;
+  }
   curl_multi_remove_handle(multi_handle, http_handle);
   curl_easy_cleanup(http_handle);
-  (*request_info->end_callback)(error, response_json_str);
   free(request_info);
-}
-
-char* copy_bytes(const char* ptr, const int size) {
-  char* new_ptr = malloc(size);
-  memcpy(new_ptr, ptr, size);
-  return new_ptr;
 }
 
 void init_curl() {
   curl_global_init(CURL_GLOBAL_DEFAULT);
   multi_handle = curl_multi_init();
+  curl_multi_setopt(multi_handle, CURLMOPT_MAX_TOTAL_CONNECTIONS, 50L);
+  curl_multi_setopt(multi_handle, CURLMOPT_MAXCONNECTS, 40L);
   
-  FILE *file = fopen("/cacert.pem", "wb");
-  fwrite(_cacert_pem, 1, _cacert_pem_len, file);
-  fclose(file);
+  cacert_blob.data = _cacert_pem;
+  cacert_blob.len = _cacert_pem_len;
+  cacert_blob.flags = CURL_BLOB_NOCOPY;
 }

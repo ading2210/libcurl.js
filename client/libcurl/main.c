@@ -192,6 +192,8 @@ void finish_request(CURLMsg *curl_msg) {
 void init_curl() {
   curl_global_init(CURL_GLOBAL_DEFAULT);
   multi_handle = curl_multi_init();
+  curl_multi_setopt(multi_handle, CURLMOPT_MAX_TOTAL_CONNECTIONS, 50L);
+  curl_multi_setopt(multi_handle, CURLMOPT_MAXCONNECTS, 40L);
   
   FILE* file = fopen("/cacert.pem", "wb");
   fwrite(_cacert_pem, 1, _cacert_pem_len, file);

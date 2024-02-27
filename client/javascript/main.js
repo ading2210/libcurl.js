@@ -16,12 +16,8 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-if (typeof window === "undefined") {
-  throw new Error("NodeJS is not supported. This only works inside the browser.");
-}
-
 //everything is wrapped in a function to prevent emscripten from polluting the global scope
-window.libcurl = (function() {
+const libcurl = (function() {
 
 //emscripten compiled code is inserted here
 /* __emscripten_output__ */

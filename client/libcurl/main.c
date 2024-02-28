@@ -19,9 +19,10 @@ void finish_request(CURLMsg *curl_msg);
 
 CURLM *multi_handle;
 int request_active = 0;
+struct curl_blob cacert_blob;
 
-int write_function(void *data, size_t size, size_t nmemb, DataCallback data_callback) {
-  long real_size = size * nmemb;
+size_t write_function(void *data, size_t size, size_t nmemb, DataCallback data_callback) {
+  size_t real_size = size * nmemb;
   char* chunk = malloc(real_size);
   memcpy(chunk, data, real_size);
   data_callback(chunk, real_size);
@@ -53,8 +54,7 @@ CURL* start_request(const char* url, const char* json_params, DataCallback data_
   int prevent_cleanup = 0;
  
   curl_easy_setopt(http_handle, CURLOPT_URL, url);
-  curl_easy_setopt(http_handle, CURLOPT_CAINFO, "/cacert.pem");
-  curl_easy_setopt(http_handle, CURLOPT_CAPATH, "/cacert.pem");
+  curl_easy_setopt(http_handle, CURLOPT_CAINFO_BLOB , cacert_blob);
 
   //callbacks to pass the response data back to js
   curl_easy_setopt(http_handle, CURLOPT_WRITEFUNCTION, &write_function);
@@ -199,8 +199,10 @@ void finish_request(CURLMsg *curl_msg) {
 void init_curl() {
   curl_global_init(CURL_GLOBAL_DEFAULT);
   multi_handle = curl_multi_init();
+  curl_multi_setopt(multi_handle, CURLMOPT_MAX_TOTAL_CONNECTIONS, 50L);
+  curl_multi_setopt(multi_handle, CURLMOPT_MAXCONNECTS, 40L);
   
-  FILE* file = fopen("/cacert.pem", "wb");
-  fwrite(_cacert_pem, 1, _cacert_pem_len, file);
-  fclose(file);
+  cacert_blob.data = _cacert_pem;
+  cacert_blob.len = _cacert_pem_len;
+  cacert_blob.flags = CURL_BLOB_NOCOPY;
 }

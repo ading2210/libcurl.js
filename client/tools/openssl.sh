@@ -11,7 +11,7 @@ mkdir -p $PREFIX
 
 cd build
 rm -rf openssl
-git clone -b master --depth=1 https://github.com/openssl/openssl
+git clone -b openssl-3.2.1 --depth=1 https://github.com/openssl/openssl
 cd openssl
 
 export CFLAGS="-Wall -Oz"

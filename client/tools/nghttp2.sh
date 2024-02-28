@@ -10,7 +10,7 @@ PREFIX=$(realpath build/nghttp2-wasm)
 
 cd build
 rm -rf nghttp2
-git clone -b master --depth=1 https://github.com/nghttp2/nghttp2
+git clone -b v1.59.0 --depth=1 https://github.com/nghttp2/nghttp2
 cd nghttp2
 
 rm -rf $PREFIX

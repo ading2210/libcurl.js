@@ -28,7 +28,7 @@ EXPORTED_FUNCS="${EXPORTED_FUNCS:1}"
 #compile options
 RUNTIME_METHODS="addFunction,removeFunction,allocate,ALLOC_NORMAL"
 COMPILER_OPTIONS="-o $MODULE_FILE -lcurl -lssl -lcrypto -lcjson -lz -lbrotlidec -lbrotlicommon -lnghttp2 -I $INCLUDE_DIR -L $LIB_DIR"
-EMSCRIPTEN_OPTIONS="-lwebsocket.js -sASSERTIONS=1 -sLLD_REPORT_UNDEFINED -sALLOW_TABLE_GROWTH -sALLOW_MEMORY_GROWTH -sEXPORTED_FUNCTIONS=$EXPORTED_FUNCS -sEXPORTED_RUNTIME_METHODS=$RUNTIME_METHODS"
+EMSCRIPTEN_OPTIONS="-lwebsocket.js -sENVIRONMENT=worker,web -sASSERTIONS=1 -sLLD_REPORT_UNDEFINED -sALLOW_TABLE_GROWTH -sALLOW_MEMORY_GROWTH -sEXPORTED_FUNCTIONS=$EXPORTED_FUNCS -sEXPORTED_RUNTIME_METHODS=$RUNTIME_METHODS"
 
 #clean output dir
 rm -rf $OUT_DIR
@@ -94,4 +94,4 @@ python3 tools/patch_js.py $FRAGMENTS_DIR $OUT_FILE
 
 #generate es6 module
 cp $OUT_FILE $ES6_FILE
-sed -i 's/window.libcurl/export const libcurl/' $ES6_FILE
+sed -i 's/const libcurl = /export const libcurl = /' $ES6_FILE

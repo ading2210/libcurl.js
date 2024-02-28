@@ -83,6 +83,13 @@ CURL* start_request(const char* url, const char* json_params, DataCallback data_
       curl_easy_setopt(http_handle, CURLOPT_VERBOSE, 1L);
     }
 
+    if (strcmp(key, "_connect_only") == 0) {
+      curl_easy_setopt(http_handle, CURLOPT_CONNECT_ONLY, 1L);
+      curl_easy_setopt(http_handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+      curl_easy_setopt(http_handle, CURLOPT_SSL_ENABLE_ALPN, 0L);
+      prevent_cleanup = 1;
+    }
+
     if (strcmp(key, "method") == 0 && cJSON_IsString(item)) {
       curl_easy_setopt(http_handle, CURLOPT_CUSTOMREQUEST, item->valuestring);
     }

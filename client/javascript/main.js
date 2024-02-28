@@ -45,42 +45,6 @@ function check_loaded(check_websocket) {
   }
 }
 
-//a case insensitive dictionary for request headers
-class HeadersDict {
-  constructor(obj) {
-    for (let key in obj) {
-      this[key] = obj[key];
-    }
-    return new Proxy(this, this);
-  }
-  get(target, prop) {
-    let keys = Object.keys(this);
-    for (let key of keys) {
-      if (key.toLowerCase() === prop.toLowerCase()) {
-        return this[key];
-      }
-    }
-  }
-  set(target, prop, value) {
-    let keys = Object.keys(this);
-    for (let key of keys) {
-      if (key.toLowerCase() === prop.toLowerCase()) {
-        this[key] = value;
-      }
-    }
-    this[prop] = value;
-    return true;
-  }
-}
-
-function allocate_str(str) {
-  return allocate(intArrayFromString(str), ALLOC_NORMAL);
-}
-
-function allocate_array(array) {
-  return allocate(array, ALLOC_NORMAL);
-}
-
 //low level interface with c code
 function perform_request(url, params, js_data_callback, js_end_callback, body=null) {
   let params_str = JSON.stringify(params);
@@ -313,15 +277,17 @@ return {
   load_wasm: load_wasm,
   wisp: _wisp_connections,
   WebSocket: CurlWebSocket,
+  TLSSocket: TLSSocket,
   
   get copyright() {return copyright_notice},
   get version() {return get_version()},
   get ready() {return wasm_ready},
+  get websocket_url() {return websocket_url},
 
   get stdout() {return out},
   set stdout(callback) {out = callback},
   get stderr() {return err},
-  set stderr(callback) {err = callback}
+  set stderr(callback) {err = callback},
 }
 
 })()

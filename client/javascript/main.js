@@ -307,8 +307,10 @@ return {
   fetch: libcurl_fetch,
   set_websocket: set_websocket_url,
   load_wasm: load_wasm,
-  wisp: _wisp_connections,
   WebSocket: CurlWebSocket,
+
+  wisp_connections: _wisp_connections,
+  WispConnection: WispConnection,
   
   get copyright() {return copyright_notice},
   get version() {return get_version()},

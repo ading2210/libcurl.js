@@ -30,6 +30,7 @@ var event_loop = null;
 var active_requests = 0;
 var wasm_ready = false;
 var version_dict = null;
+var api = null;
 const libcurl_version = "__library_version__";
 
 function check_loaded(check_websocket) {
@@ -267,7 +268,7 @@ async function libcurl_fetch(url, params={}) {
 
 function set_websocket_url(url) {
   websocket_url = url;
-  if (!Module.websocket) {
+  if (!Module.websocket && ENVIRONMENT_IS_WEB) {
     document.addEventListener("libcurl_load", () => {
       set_websocket_url(url);
     });
@@ -292,8 +293,11 @@ function main() {
   _init_curl();
   set_websocket_url(websocket_url);
 
-  let load_event = new Event("libcurl_load");
-  document.dispatchEvent(load_event);
+  if (ENVIRONMENT_IS_WEB) {
+    let load_event = new Event("libcurl_load");
+    document.dispatchEvent(load_event);
+  }
+  api.onload();
 }
 
 function load_wasm(url) {
@@ -303,7 +307,7 @@ function load_wasm(url) {
 }
 
 Module.onRuntimeInitialized = main;
-return {
+api = {
   fetch: libcurl_fetch,
   set_websocket: set_websocket_url,
   load_wasm: load_wasm,
@@ -319,7 +323,11 @@ return {
   get stdout() {return out},
   set stdout(callback) {out = callback},
   get stderr() {return err},
-  set stderr(callback) {err = callback}
-}
+  set stderr(callback) {err = callback},
+
+  onload() {}
+};
+
+return api;
 
 })()

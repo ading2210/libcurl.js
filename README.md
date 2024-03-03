@@ -51,6 +51,13 @@ document.addEventListener("libcurl_load", ()=>{
 });
 ```
 
+Alternatively, the `libcurl.onload` callback can be used.
+```js
+libcurl.onload = () => {
+  console.log("libcurl.js ready!");
+}
+```
+
 Once loaded, there will be a `window.libcurl` object which includes all the API functions. The `libcurl.ready` property can also be used to know if the WASM has loaded.
 
 ### Making HTTP Requests:

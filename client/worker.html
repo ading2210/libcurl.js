@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="icon" href="data:;base64,=">
+    <script id="worker1" type="javascript/worker">
+      importScripts(`${location.origin}/out/libcurl.js`);
+      async function main() {
+        libcurl.set_websocket(`${location.origin.replace("http", "ws")}/`);
+        self.postMessage("loaded libcurl.js v" + libcurl.version.lib);
+        let r = await libcurl.fetch("https://ifconfig.me/all", {_libcurl_verbose: 1});
+        self.postMessage(await r.text());
+      }
+
+      libcurl.onload = main;
+      libcurl.stdout = self.postMessage;
+      libcurl.stderr = self.postMessage;
+      libcurl.load_wasm(`${location.origin}/out/libcurl.wasm`);
+    </script>
+    <script>
+      var blob = new Blob([
+        document.querySelector('#worker1').textContent
+      ], {type: "text/javascript"});
+    
+      var worker = new Worker(window.URL.createObjectURL(blob));
+      worker.onmessage = function(e) {
+        console.log("Received: " + e.data);
+      }
+    </script>
+  </head>
+  <body>
+    <p>emscripten tests</p>
+  </body>
+</html>

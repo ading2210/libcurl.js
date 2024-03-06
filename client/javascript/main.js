@@ -67,7 +67,6 @@ function perform_request(url, params, js_data_callback, js_end_callback, body=nu
     _free(url_ptr);
     _free(response_json_ptr);
     
-    if (error != 0) console.error("request failed with error code " + error);
     active_requests --;
     js_end_callback(error, response_info);
   }
@@ -172,7 +171,9 @@ function perform_request_async(url, params, body) {
     
     let finish_callback = (error, response_info) => {
       if (error != 0) {
-        reject("libcurl.js encountered an error: " + error);
+        let error_str = `Request failed with error code ${error}: ${get_error_str(error)}`;
+        if (error != 0) error_msg(error_str);
+        reject(error_str);
         return;
       }
       let response_data = merge_arrays(chunks);

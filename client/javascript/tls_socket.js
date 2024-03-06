@@ -1,8 +1,7 @@
 //currently broken
 
-class TLSSocket extends CustomWebSocket {
+class TLSSocket {
   constructor(hostname, port, debug) {
-    super();
     this.hostname = hostname;
     this.port = port;
     this.url = `https://${hostname}:${port}`;

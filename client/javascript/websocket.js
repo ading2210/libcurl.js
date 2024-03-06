@@ -60,7 +60,6 @@ class CurlWebSocket {
       _free(data_ptr);
       _free(result_ptr);
     }
-    console.log(result_code);
 
     if (result_code === 0) { //CURLE_OK - data received 
       if (_get_result_closed(result_ptr)) {
@@ -72,8 +71,6 @@ class CurlWebSocket {
       let data_size = _get_result_size(result_ptr);
       let data_heap = Module.HEAPU8.subarray(data_ptr, data_ptr + data_size);
       let data = new Uint8Array(data_heap);
-
-      console.log(data, data_size, buffer_size, _get_result_bytes_left(result_ptr));
       
       this.recv_buffer.push(data);
       if (data_size !== buffer_size && !_get_result_bytes_left(result_ptr)) { //message finished
@@ -88,7 +85,7 @@ class CurlWebSocket {
         }
       }
     }
-    
+
     //CURLE_GOT_NOTHING, CURLE_RECV_ERROR, CURLE_SEND_ERROR - socket closed
     else if (result_code === 52 || result_code === 55 || result_code === 56) {
       this.cleanup();

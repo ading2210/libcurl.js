@@ -5,6 +5,7 @@ active_requests
 
 get_version
 get_cacert
+get_error_str
 
 recv_from_websocket
 send_to_websocket

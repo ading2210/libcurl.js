@@ -35,3 +35,7 @@ char* get_version() {
   cJSON_Delete(version_json);
   return version_json_str;
 }
+
+const char* get_error_str(CURLcode error_code) {
+  return curl_easy_strerror(error_code);
+}

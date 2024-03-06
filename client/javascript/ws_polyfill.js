@@ -44,7 +44,7 @@ class FakeWebSocket extends EventTarget {
 
     this.socket.onerror = (error) => {
       this.status = this.CLOSED;
-      console.error(`websocket ${this.url} encountered an error (${error})`);
+      error_msg(`websocket ${this.url} encountered an error (${error})`);
       let error_event = new Event("error");
       this.dispatchEvent(error_event);
       this.onerror(error_event);
@@ -66,7 +66,7 @@ class FakeWebSocket extends EventTarget {
           throw "invalid binaryType string";
         }
       }
-      
+
       let msg_event = new MessageEvent("message", {data: converted});
       this.onmessage(msg_event);
       this.dispatchEvent(msg_event);

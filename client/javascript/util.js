@@ -34,6 +34,11 @@ function allocate_array(array) {
   return allocate(array, ALLOC_NORMAL);
 }
 
+function get_error_str(error_code) {
+  let error_ptr = _get_error_str(error_code);
+  return UTF8ToString(error_ptr);
+}
+
 //convert any data to a uint8array
 async function data_to_array(data) {
   let data_array = null;

@@ -252,6 +252,10 @@ function get_version() {
   return version_dict;
 }
 
+function get_cacert() {
+  return UTF8ToString(_get_cacert());
+}
+
 function main() {
   wasm_ready = true;
   _init_curl();
@@ -277,6 +281,7 @@ api = {
   load_wasm: load_wasm,
   WebSocket: CurlWebSocket,
   TLSSocket: TLSSocket,
+  get_cacert: get_cacert,
 
   wisp_connections: _wisp_connections,
   WispConnection: WispConnection,

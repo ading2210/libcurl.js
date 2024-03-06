@@ -4,6 +4,7 @@ tick_request
 active_requests
 
 get_version
+get_cacert
 
 recv_from_websocket
 send_to_websocket

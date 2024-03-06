@@ -7,9 +7,9 @@
 #include "curl/easy.h"
 #include "curl/header.h"
 #include "cjson/cJSON.h"
-#include "cacert.h"
 #include "curl/multi.h"
 
+#include "cacert.h"
 #include "util.h"
 #include "types.h"
 
@@ -194,6 +194,10 @@ void finish_request(CURLMsg *curl_msg) {
   curl_multi_remove_handle(multi_handle, http_handle);
   curl_easy_cleanup(http_handle);
   free(request_info);
+}
+
+unsigned char* get_cacert() {
+  return _cacert_pem;
 }
 
 void init_curl() {

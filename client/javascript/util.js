@@ -35,36 +35,43 @@ function allocate_array(array) {
 }
 
 //convert any data to a uint8array
-function any_to_array(data) {
-  let data_array;
+async function data_to_array(data) {
+  let data_array = null;
   if (typeof data === "string") {
     data_array = new TextEncoder().encode(data);
   }
+
   else if (data instanceof Blob) {
-    data.arrayBuffer().then(array_buffer => {
-      data_array = new Uint8Array(array_buffer);
-      this.send(data_array);
-    });
-    return;
+    let array_buffer = await data.arrayBuffer();
+    data_array = new Uint8Array(array_buffer);
   }
+
   //any typedarray
   else if (data instanceof ArrayBuffer) {
     //dataview objects
     if (ArrayBuffer.isView(data) && data instanceof DataView) {
       data_array = new Uint8Array(data.buffer);
     }
+    //regular typed arrays
+    else if (ArrayBuffer.isView(data)) {
+      data_array = Uint8Array.from(data);
+    }
     //regular arraybuffers
     else {
       data_array = new Uint8Array(data);
     }
   }
-  //regular typed arrays
-  else if (ArrayBuffer.isView(data)) {
-    data_array = Uint8Array.from(data);
-  }
-  else {
-    throw "invalid data type";
+
+  else if (data instanceof ReadableStream) {
+    let chunks = [];
+    for await (let chunk of data) {
+      chunks.push(chunk);
+    }
+    data_array = merge_arrays(chunks);
   }
 
+  else {
+    throw "invalid data type to be sent";
+  }
   return data_array;
 }

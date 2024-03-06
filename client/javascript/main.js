@@ -141,51 +141,11 @@ function create_response(response_data, response_info) {
   return response_obj;
 }
 
-async function parse_body(data) {
-  let data_array = null;
-  if (typeof data === "string") {
-    data_array = new TextEncoder().encode(data);
-  }
-
-  else if (data instanceof Blob) {
-    let array_buffer = await data.arrayBuffer();
-    data_array = new Uint8Array(array_buffer);
-  }
-
-  //any typedarray
-  else if (data instanceof ArrayBuffer) {
-    //dataview objects
-    if (ArrayBuffer.isView(data) && data instanceof DataView) {
-      data_array = new Uint8Array(data.buffer);
-    }
-    //regular typed arrays
-    else if (ArrayBuffer.isView(data)) {
-      data_array = Uint8Array.from(data);
-    }
-    //regular arraybuffers
-    else {
-      data_array = new Uint8Array(data);
-    }
-  }
-
-  else if (data instanceof ReadableStream) {
-    let chunks = [];
-    for await (let chunk of data) {
-      chunks.push(chunk);
-    }
-    data_array = merge_arrays(chunks);
-  }
-
-  else {
-    throw "invalid data type to be sent";
-  }
-  return data_array;
-}
 
 async function create_options(params) {
   let body = null;
   if (params.body) {
-    body = await parse_body(params.body);
+    body = await data_to_array(params.body);
     params.body = true;
   }
 
@@ -279,7 +239,8 @@ api = {
   fetch: libcurl_fetch,
   set_websocket: set_websocket_url,
   load_wasm: load_wasm,
-  WebSocket: CurlWebSocket,
+  WebSocket: FakeWebSocket,
+  CurlWebSocket: CurlWebSocket,
   TLSSocket: TLSSocket,
   get_cacert: get_cacert,
 
@@ -295,6 +256,8 @@ api = {
   set stdout(callback) {out = callback},
   get stderr() {return err},
   set stderr(callback) {err = callback},
+  get logger() {return logger},
+  set logger(func) {logger = func},
 
   onload() {}
 };

@@ -73,6 +73,8 @@ Most of the standard Fetch API's features are supported, with the exception of:
 - Sending credentials/cookies automatically
 - Caching
 
+Note that there is a hard limit of 50 active TCP connections due to emscripten limitations. 
+
 ### Creating WebSocket Connections:
 To use WebSockets, create a `libcurl.WebSocket` object, which works identically to the regular [WebSocket](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) object.
 ```js
@@ -105,6 +107,9 @@ libcurl.stderr = (text) => {document.body.innerHTML += text};
 
 ### Getting Version Info:
 You can get version information from the `libcurl.version` object. This object will also contain the versions of all the C libraries that libcurl.js uses. `libcurl.version.lib` returns the version of libcurl.js itself. 
+
+### Getting the CA Certificates Bundle:
+You can get the CA cert bundle that libcurl uses by calling `libcurl.get_cacert()`. The function will return a string with the certificates in PEM format. The cert bundle comes from the [official curl website](https://curl.se/docs/caextract.html), which is extracted from the Mozilla Firefox source code. 
 
 ## Proxy Server:
 The proxy server consists of a standard [Wisp](https://github.com/MercuryWorkshop/wisp-protocol) server, allowing multiple TCP connections to share the same websocket.

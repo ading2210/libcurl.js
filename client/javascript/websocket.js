@@ -1,13 +1,21 @@
-class CurlWebSocket extends CustomWebSocket {
-  constructor(url, protocols=[], debug=false) {
-    super(url, protocols);
+class CurlWebSocket {
+  constructor(url, protocols=[], options={}) {
     check_loaded(true);
     if (!url.startsWith("wss://") && !url.startsWith("ws://")) {
       throw new SyntaxError("invalid url");
     }
     
+    this.url = url;
     this.protocols = protocols;
-    this.debug = debug;
+    this.options = options;
+
+    this.onopen = () => {};
+    this.onerror = () => {};
+    this.onmessage = () => {};
+    this.onclose = () => {};
+
+    this.connected = false;
+    this.event_loop = null;
     this.recv_buffer = [];
 
     this.connect();
@@ -17,87 +25,108 @@ class CurlWebSocket extends CustomWebSocket {
     let data_callback = () => {};
     let finish_callback = (error, response_info) => {
       if (error === 0) {
-        this.status = this.OPEN;
-        this.open_callback();
-        this.recv_loop();
+        this.connected = true;
+        this.event_loop = setInterval(() => {
+          let data = this.recv();
+          if (data !== null) this.onmessage(data);
+        }, 0);
+        this.onopen();
       }
       else {
         this.status = this.CLOSED;
         this.cleanup(error);
       }
     }
-    let options = {};
+    let request_options = {
+      headers: this.options.headers || {}
+    };
     if (this.protocols) {
-      options.headers = {
-        "Sec-Websocket-Protocol": this.protocols.join(", "),
-      };
+      request_options.headers["Sec-Websocket-Protocol"] = this.protocols.join(", ");
     }
-    if (this.debug) {
-      options._libcurl_verbose = 1;
+    if (this.options.verbose) {
+      request_options._libcurl_verbose = 1;
     }
-    this.http_handle = perform_request(this.url, options, data_callback, finish_callback, null);
+    this.http_handle = perform_request(this.url, request_options, data_callback, finish_callback, null);
   }
 
-  custom_recv() {
+  recv() {
     let buffer_size = 64*1024;
     let result_ptr = _recv_from_websocket(this.http_handle, buffer_size);
     let data_ptr = _get_result_buffer(result_ptr);
     let result_code = _get_result_code(result_ptr);
+    let returned_data = null;
 
-    if (result_code == 0) { //CURLE_OK - data received 
+    function free_result() {
+      _free(data_ptr);
+      _free(result_ptr);
+    }
+    console.log(result_code);
+
+    if (result_code === 0) { //CURLE_OK - data received 
       if (_get_result_closed(result_ptr)) {
-        _free(data_ptr);
-        _free(result_ptr);
+        free_result();
         this.cleanup();
-        return;
+        return returned_data;
       }
 
       let data_size = _get_result_size(result_ptr);
       let data_heap = Module.HEAPU8.subarray(data_ptr, data_ptr + data_size);
       let data = new Uint8Array(data_heap);
+
+      console.log(data, data_size, buffer_size, _get_result_bytes_left(result_ptr));
       
       this.recv_buffer.push(data);
       if (data_size !== buffer_size && !_get_result_bytes_left(result_ptr)) { //message finished
         let full_data = merge_arrays(this.recv_buffer);
         let is_text = _get_result_is_text(result_ptr)
         this.recv_buffer = [];
-        return {
-          success: true,
-          data: full_data,
-          is_text: is_text
+        if (is_text) {
+          returned_data = new TextDecoder().decode(full_data);
+        }
+        else {
+          returned_data = full_data;
         }
       }
     }
-
-    if (result_code == 52) { //CURLE_GOT_NOTHING - socket closed
+    
+    //CURLE_GOT_NOTHING, CURLE_RECV_ERROR, CURLE_SEND_ERROR - socket closed
+    else if (result_code === 52 || result_code === 55 || result_code === 56) {
       this.cleanup();
     }
     
-    _free(data_ptr);
-    _free(result_ptr);
-
-    return {
-      success: false,
-      data: null,
-      is_text: false
-    }
+    free_result();
+    return returned_data;
   }
 
   cleanup(error=false) {
     if (this.http_handle) _cleanup_handle(this.http_handle);
     clearInterval(this.event_loop);
-    this.close_callback(error);
+    this.connected = false;
+
+    if (error) {
+      this.onerror(error);
+    }
+    else {
+      this.onclose();
+    }
   }
 
-  custom_send(data_array, is_text) {
-    let data_ptr = allocate_array(data_array);
-    let data_len = data_array.length;
+  send(data) {
+    let is_text = typeof data === "string";
+    if (!this.connected) {
+      throw new DOMException("websocket not connected");
+    }
+
+    if (is_text) {
+      data = new TextEncoder().encode(data);
+    }
+    let data_ptr = allocate_array(data);
+    let data_len = data.length;
     _send_to_websocket(this.http_handle, data_ptr, data_len, is_text);
     _free(data_ptr);
   }
 
-  custom_close() {
+  close() {
     this.cleanup();
-    this.status = this.CLOSED;
   }
 }

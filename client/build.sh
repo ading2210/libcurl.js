@@ -86,7 +86,7 @@ sed -i "/__extra_libraries__/r $WISP_CLIENT/wisp.js" $OUT_FILE
 sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/messages.js" $OUT_FILE
 sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/tls_socket.js" $OUT_FILE
 sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/websocket.js" $OUT_FILE
-sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/custom_websocket.js" $OUT_FILE
+sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/ws_polyfill.js" $OUT_FILE
 sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/util.js" $OUT_FILE
 
 #apply patches

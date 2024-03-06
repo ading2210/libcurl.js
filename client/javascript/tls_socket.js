@@ -1,3 +1,5 @@
+//currently broken
+
 class TLSSocket extends CustomWebSocket {
   constructor(hostname, port, debug) {
     super();

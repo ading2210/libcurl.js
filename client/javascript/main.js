@@ -244,6 +244,7 @@ api = {
 
   wisp_connections: _wisp_connections,
   WispConnection: WispConnection,
+  transport: "wisp",
   
   get copyright() {return copyright_notice},
   get version() {return get_version()},

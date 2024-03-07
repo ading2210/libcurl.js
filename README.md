@@ -141,6 +141,12 @@ socket.onmessage = (data) => {
 };
 ```
 
+### Changing the Network Transport:
+You can change the underlying network transport by setting `libcurl.transport`. The following values are accepted:
+- `"wisp"` - Use the [Wisp protocol](https://github.com/MercuryWorkshop/wisp-protocol).
+- `"wsproxy"` - Use the wsproxy protocol, where a new websocket is created for each TCP connection. 
+- Any custom class - Use a custom network protocol. If you pass in custom code here, it must be roughly conformant with the standard `WebSocket` API. The URL that is passed into this fake websocket always looks like `"wss://example.com/ws/ading.dev:443"`, where `wss://example.com/ws/` is the proxy server URL, and `ading.dev:443` is the destination server.
+
 ### Changing the Websocket Proxy URL:
 You can change the URL of the websocket proxy by using `libcurl.set_websocket`.
 ```js
@@ -153,10 +159,15 @@ If you want more information about a connection, you can pass the `_libcurl_verb
 ```js
 await libcurl.fetch("https://example.com", {_libcurl_verbose: 1});
 ```
+
 By default this will print the output to the browser console, but you can set `libcurl.stdout` and `libcurl.stderr` to intercept these messages. This callback will be executed on every line of text that libcurl outputs.
 ```js
 libcurl.stderr = (text) => {document.body.innerHTML += text};
 ```
+
+Libcurl.js will also output some error messages to the browser console. You can intercept these messages by setting the `libcurl.logger` callback, which takes two arguments:
+- `type` - The type of message. This will be one of the following: `"log"`, `"warn"`, `"error"`
+- `text` - The text that is to be logged.
 
 ### Getting Version Info:
 You can get version information from the `libcurl.version` object. This object will also contain the versions of all the C libraries that libcurl.js uses. `libcurl.version.lib` returns the version of libcurl.js itself. 

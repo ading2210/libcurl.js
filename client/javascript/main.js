@@ -42,42 +42,6 @@ function check_loaded(check_websocket) {
   }
 }
 
-//a case insensitive dictionary for request headers
-class HeadersDict {
-  constructor(obj) {
-    for (let key in obj) {
-      this[key] = obj[key];
-    }
-    return new Proxy(this, this);
-  }
-  get(target, prop) {
-    let keys = Object.keys(this);
-    for (let key of keys) {
-      if (key.toLowerCase() === prop.toLowerCase()) {
-        return this[key];
-      }
-    }
-  }
-  set(target, prop, value) {
-    let keys = Object.keys(this);
-    for (let key of keys) {
-      if (key.toLowerCase() === prop.toLowerCase()) {
-        this[key] = value;
-      }
-    }
-    this[prop] = value;
-    return true;
-  }
-}
-
-function allocate_str(str) {
-  return allocate(intArrayFromString(str), ALLOC_NORMAL);
-}
-
-function allocate_array(array) {
-  return allocate(array, ALLOC_NORMAL);
-}
-
 //low level interface with c code
 function perform_request(url, params, js_data_callback, js_end_callback, body=null) {
   let params_str = JSON.stringify(params);
@@ -103,7 +67,6 @@ function perform_request(url, params, js_data_callback, js_end_callback, body=nu
     _free(url_ptr);
     _free(response_json_ptr);
     
-    if (error != 0) console.error("request failed with error code " + error);
     active_requests --;
     js_end_callback(error, response_info);
   }
@@ -177,51 +140,11 @@ function create_response(response_data, response_info) {
   return response_obj;
 }
 
-async function parse_body(data) {
-  let data_array = null;
-  if (typeof data === "string") {
-    data_array = new TextEncoder().encode(data);
-  }
-
-  else if (data instanceof Blob) {
-    let array_buffer = await data.arrayBuffer();
-    data_array = new Uint8Array(array_buffer);
-  }
-
-  //any typedarray
-  else if (data instanceof ArrayBuffer) {
-    //dataview objects
-    if (ArrayBuffer.isView(data) && data instanceof DataView) {
-      data_array = new Uint8Array(data.buffer);
-    }
-    //regular typed arrays
-    else if (ArrayBuffer.isView(data)) {
-      data_array = Uint8Array.from(data);
-    }
-    //regular arraybuffers
-    else {
-      data_array = new Uint8Array(data);
-    }
-  }
-
-  else if (data instanceof ReadableStream) {
-    let chunks = [];
-    for await (let chunk of data) {
-      chunks.push(chunk);
-    }
-    data_array = merge_arrays(chunks);
-  }
-
-  else {
-    throw "invalid data type to be sent";
-  }
-  return data_array;
-}
 
 async function create_options(params) {
   let body = null;
   if (params.body) {
-    body = await parse_body(params.body);
+    body = await data_to_array(params.body);
     params.body = true;
   }
 
@@ -248,7 +171,9 @@ function perform_request_async(url, params, body) {
     
     let finish_callback = (error, response_info) => {
       if (error != 0) {
-        reject("libcurl.js encountered an error: " + error);
+        let error_str = `Request failed with error code ${error}: ${get_error_str(error)}`;
+        if (error != 0) error_msg(error_str);
+        reject(error_str);
         return;
       }
       let response_data = merge_arrays(chunks);
@@ -268,12 +193,9 @@ async function libcurl_fetch(url, params={}) {
 
 function set_websocket_url(url) {
   websocket_url = url;
-  if (!Module.websocket && ENVIRONMENT_IS_WEB) {
-    document.addEventListener("libcurl_load", () => {
-      set_websocket_url(url);
-    });
+  if (Module.websocket) {
+    Module.websocket.url = url;
   }
-  else Module.websocket.url = url;
 }
 
 function get_version() {
@@ -286,6 +208,10 @@ function get_version() {
   version_dict = JSON.parse(version_str);
   version_dict.lib = libcurl_version;
   return version_dict;
+}
+
+function get_cacert() {
+  return UTF8ToString(_get_cacert());
 }
 
 function main() {
@@ -311,19 +237,26 @@ api = {
   fetch: libcurl_fetch,
   set_websocket: set_websocket_url,
   load_wasm: load_wasm,
-  WebSocket: CurlWebSocket,
+  WebSocket: FakeWebSocket,
+  CurlWebSocket: CurlWebSocket,
+  TLSSocket: TLSSocket,
+  get_cacert: get_cacert,
 
   wisp_connections: _wisp_connections,
   WispConnection: WispConnection,
+  transport: "wisp",
   
   get copyright() {return copyright_notice},
   get version() {return get_version()},
   get ready() {return wasm_ready},
+  get websocket_url() {return websocket_url},
 
   get stdout() {return out},
   set stdout(callback) {out = callback},
   get stderr() {return err},
   set stderr(callback) {err = callback},
+  get logger() {return logger},
+  set logger(func) {logger = func},
 
   onload() {}
 };

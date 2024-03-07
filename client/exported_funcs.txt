@@ -4,16 +4,21 @@ tick_request
 active_requests
 
 get_version
+get_cacert
+get_error_str
 
 recv_from_websocket
 send_to_websocket
 close_websocket
-cleanup_websocket
+cleanup_handle
 get_result_size
 get_result_buffer
 get_result_code
 get_result_closed
 get_result_bytes_left
 get_result_is_text
+
+recv_from_socket
+send_to_socket
 
 free

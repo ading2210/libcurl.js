@@ -51,7 +51,7 @@ document.addEventListener("libcurl_load", ()=>{
 });
 ```
 
-Alternatively, the `libcurl.onload` callback can be used.
+You may also use the, the `libcurl.onload` callback, which can be useful for running libcurl.js inside a web worker.
 ```js
 libcurl.onload = () => {
   console.log("libcurl.js ready!");
@@ -73,8 +73,38 @@ Most of the standard Fetch API's features are supported, with the exception of:
 - Sending credentials/cookies automatically
 - Caching
 
+Note that there is a hard limit of 50 active TCP connections due to emscripten limitations. 
+
 ### Creating WebSocket Connections:
-To use WebSockets, create a `libcurl.WebSocket` object, which works identically to the regular [WebSocket](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) object.
+To use WebSockets, create a `libcurl.CurlWebSocket` object, which takes the following arguments:
+- `url` - The Websocket URL.
+- `protocols` - A optional list of websocket subprotocols, as an array of strings.
+- `options` - An optional object with extra settings to pass to curl.
+
+The valid WebSocket options are:
+- `headers` - HTTP request headers for the websocket handshake.
+- `verbose` - A boolean flag that toggles the verbose libcurl output. This verbose output will be passed to the function defined in `libcurl.stderr`, which is `console.warn` by default.
+
+The following callbacks are available:
+- `CurlWebSocket.onopen` - Called when the websocket is successfully connected.
+- `CurlWebSocket.message` - Called when a websocket message is received from the server. The data is passed to the first argument of the function, and it will be either a `Uint8Array` or a string, depending on the type of message.
+- `CurlWebSocket.onclose` - Called when the websocket is cleanly closed with no error.
+- `CurlWebSocket.onerror` - Called when the websocket encounters an unexpected error. The [error code](https://curl.se/libcurl/c/libcurl-errors.html) is passed to the first argument of the function.
+
+The `CurlWebSocket.send` function can be used to send data to the websocket. The only argument is the data that is to be sent, which must be either a string or a `Uint8Array`.
+
+```js
+let ws = new libcurl.CurlWebSocket("wss://echo.websocket.org", [], {verbose: 1});
+ws.onopen = () => {
+  console.log("ws connected!");
+  ws.send("hello".repeat(100));
+};
+ws.onmessage = (data) => {
+  console.log(data);
+};
+```
+
+You can also use the `libcurl.WebSocket` object, which works identically to the regular [WebSocket](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) object. It uses the same arguments as the simpler `CurlWebSocket` API.
 ```js
 let ws = new libcurl.WebSocket("wss://echo.websocket.org");
 ws.addEventListener("open", () => {
@@ -86,7 +116,38 @@ ws.addEventListener("message", (event) => {
 });
 ```
 
-### Changing the Websocket URL:
+### Using TLS Sockets:
+Raw TLS sockets can be created with the `libcurl.TLSSocket` class, which takes the following arguments:
+- `host` - The hostname to connect to.
+- `port` - The TCP port to connect to.
+- `options` - An optional object with extra settings to pass to curl.
+
+The valid TLS socket options are:
+- `verbose` - A boolean flag that toggles the verbose libcurl output. 
+
+The callbacks work similarly to the `libcurl.CurlWebSocket` object, with the main difference being that the `onmessage` callback always returns a `Uint8Array`.
+
+The `TLSSocket.send` function can be used to send data to the socket. The only argument is the data that is to be sent, which must be a `Uint8Array`. 
+
+```js
+let socket = new libcurl.TLSSocket("ading.dev", 443, {verbose: 1});
+socket.onopen = () => {
+  console.log("socket connected!");
+  let str = "GET /all HTTP/1.1\r\nHost: ading.dev\r\nConnection: close\r\n\r\n";
+  socket.send(new TextEncoder().encode(str));
+};
+socket.onmessage = (data) => {
+  console.log(new TextDecoder().decode(data));
+};
+```
+
+### Changing the Network Transport:
+You can change the underlying network transport by setting `libcurl.transport`. The following values are accepted:
+- `"wisp"` - Use the [Wisp protocol](https://github.com/MercuryWorkshop/wisp-protocol).
+- `"wsproxy"` - Use the wsproxy protocol, where a new websocket is created for each TCP connection. 
+- Any custom class - Use a custom network protocol. If you pass in custom code here, it must be roughly conformant with the standard `WebSocket` API. The URL that is passed into this fake websocket always looks like `"wss://example.com/ws/ading.dev:443"`, where `wss://example.com/ws/` is the proxy server URL, and `ading.dev:443` is the destination server.
+
+### Changing the Websocket Proxy URL:
 You can change the URL of the websocket proxy by using `libcurl.set_websocket`.
 ```js
 libcurl.set_websocket("ws://localhost:6001/");
@@ -94,17 +155,25 @@ libcurl.set_websocket("ws://localhost:6001/");
 If the websocket proxy URL is not set and one of the other API functions is called, an error will be thrown. Note that this URL must end with a trailing slash.
 
 ### Getting Libcurl's Output:
-If you want more information about a connection, you can pass the `_libcurl_verbose` argument to the `libcurl.fetch` function.
+If you want more information about a connection, you can pass the `_libcurl_verbose` argument to the `libcurl.fetch` function. These are the same messages that you would see if you ran `curl -v` on the command line.
 ```js
 await libcurl.fetch("https://example.com", {_libcurl_verbose: 1});
 ```
+
 By default this will print the output to the browser console, but you can set `libcurl.stdout` and `libcurl.stderr` to intercept these messages. This callback will be executed on every line of text that libcurl outputs.
 ```js
 libcurl.stderr = (text) => {document.body.innerHTML += text};
 ```
 
+Libcurl.js will also output some error messages to the browser console. You can intercept these messages by setting the `libcurl.logger` callback, which takes two arguments:
+- `type` - The type of message. This will be one of the following: `"log"`, `"warn"`, `"error"`
+- `text` - The text that is to be logged.
+
 ### Getting Version Info:
 You can get version information from the `libcurl.version` object. This object will also contain the versions of all the C libraries that libcurl.js uses. `libcurl.version.lib` returns the version of libcurl.js itself. 
+
+### Getting the CA Certificates Bundle:
+You can get the CA cert bundle that libcurl uses by calling `libcurl.get_cacert()`. The function will return a string with the certificates in PEM format. The cert bundle comes from the [official curl website](https://curl.se/docs/caextract.html), which is extracted from the Mozilla Firefox source code. 
 
 ## Proxy Server:
 The proxy server consists of a standard [Wisp](https://github.com/MercuryWorkshop/wisp-protocol) server, allowing multiple TCP connections to share the same websocket.

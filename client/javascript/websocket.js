@@ -33,7 +33,6 @@ class CurlWebSocket {
         this.onopen();
       }
       else {
-        this.status = this.CLOSED;
         this.cleanup(error);
       }
     }
@@ -54,16 +53,14 @@ class CurlWebSocket {
     let result_ptr = _recv_from_websocket(this.http_handle, buffer_size);
     let data_ptr = _get_result_buffer(result_ptr);
     let result_code = _get_result_code(result_ptr);
+    let result_closed = _get_result_closed(result_ptr);
     let returned_data = null;
 
-    function free_result() {
-      _free(data_ptr);
-      _free(result_ptr);
-    }
-
-    if (result_code === 0) { //CURLE_OK - data received 
+    //CURLE_OK - data received 
+    if (result_code === 0 && !result_closed) {
       if (_get_result_closed(result_ptr)) {
-        free_result();
+        _free(data_ptr);
+        _free(result_ptr);
         this.cleanup();
         return returned_data;
       }
@@ -85,18 +82,26 @@ class CurlWebSocket {
         }
       }
     }
-
-    //CURLE_GOT_NOTHING, CURLE_RECV_ERROR, CURLE_SEND_ERROR - socket closed
-    else if (result_code === 52 || result_code === 55 || result_code === 56) {
+    
+    // websocket was cleanly closed by the server
+    else if (result_code === 0 && result_closed) {
       this.cleanup();
     }
+
+    //code is not CURLE_AGAIN - an error must have occurred
+    else if (result_code !== 81) {
+      this.cleanup(result_code);
+    }
     
-    free_result();
+    _free(data_ptr);
+    _free(result_ptr);
     return returned_data;
   }
 
-  cleanup(error=false) {
+  cleanup(error=0) {
     if (this.http_handle) _cleanup_handle(this.http_handle);
+    else return;
+
     clearInterval(this.event_loop);
     this.connected = false;
 
@@ -110,9 +115,7 @@ class CurlWebSocket {
 
   send(data) {
     let is_text = typeof data === "string";
-    if (!this.connected) {
-      throw new DOMException("websocket not connected");
-    }
+    if (!this.connected) return;
 
     if (is_text) {
       data = new TextEncoder().encode(data);

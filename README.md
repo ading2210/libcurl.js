@@ -51,7 +51,7 @@ document.addEventListener("libcurl_load", ()=>{
 });
 ```
 
-Alternatively, the `libcurl.onload` callback can be used.
+You may also use the, the `libcurl.onload` callback, which can be useful for running libcurl.js inside a web worker.
 ```js
 libcurl.onload = () => {
   console.log("libcurl.js ready!");
@@ -76,7 +76,35 @@ Most of the standard Fetch API's features are supported, with the exception of:
 Note that there is a hard limit of 50 active TCP connections due to emscripten limitations. 
 
 ### Creating WebSocket Connections:
-To use WebSockets, create a `libcurl.WebSocket` object, which works identically to the regular [WebSocket](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) object.
+To use WebSockets, create a `libcurl.CurlWebSocket` object, which takes the following arguments:
+- `url` - The Websocket URL.
+- `protocols` - A optional list of websocket subprotocols, as an array of strings.
+- `options` - An optional object with extra settings to pass to curl.
+
+The valid WebSocket options are:
+- `headers` - HTTP request headers for the websocket handshake.
+- `verbose` - A boolean flag that toggles the verbose libcurl output. This verbose output will be passed to the function defined in `libcurl.stderr`, which is `console.warn` by default.
+
+The following callbacks are available:
+- `CurlWebSocket.onopen` - Called when the websocket is successfully connected.
+- `CurlWebSocket.message` - Called when a websocket message is received from the server. The data is passed to the first argument of the function, and it will be either a `Uint8Array` or a string, depending on the type of message.
+- `CurlWebSocket.onclose` - Called when the websocket is cleanly closed with no error.
+- `CurlWebSocket.onerror` - Called when the websocket encounters an unexpected error. The [error code](https://curl.se/libcurl/c/libcurl-errors.html) is passed to the first argument of the function.
+
+The `CurlWebSocket.send` function can be used to send data to the websocket. The only argument is the data that is to be sent, which must be either a string or a `Uint8Array`.
+
+```js
+let ws = new libcurl.CurlWebSocket("wss://echo.websocket.org", [], {verbose: 1});
+ws.onopen = () => {
+  console.log("ws connected!");
+  ws.send("hello".repeat(100));
+};
+ws.onmessage = (data) => {
+  console.log(data);
+};
+```
+
+You can also use the `libcurl.WebSocket` object, which works identically to the regular [WebSocket](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) object. It uses the same arguments as the simpler `CurlWebSocket` API.
 ```js
 let ws = new libcurl.WebSocket("wss://echo.websocket.org");
 ws.addEventListener("open", () => {
@@ -88,7 +116,32 @@ ws.addEventListener("message", (event) => {
 });
 ```
 
-### Changing the Websocket URL:
+### Using TLS Sockets:
+Raw TLS sockets can be created with the `libcurl.TLSSocket` class, which takes the following arguments:
+- `host` - The hostname to connect to.
+- `port` - The TCP port to connect to.
+- `options` - An optional object with extra settings to pass to curl.
+
+The valid TLS socket options are:
+- `verbose` - A boolean flag that toggles the verbose libcurl output. 
+
+The callbacks work similarly to the `libcurl.CurlWebSocket` object, with the main difference being that the `onmessage` callback always returns a `Uint8Array`.
+
+The `TLSSocket.send` function can be used to send data to the socket. The only argument is the data that is to be sent, which must be a `Uint8Array`. 
+
+```js
+let socket = new libcurl.TLSSocket("ading.dev", 443, {verbose: 1});
+socket.onopen = () => {
+  console.log("socket connected!");
+  let str = "GET /all HTTP/1.1\r\nHost: ading.dev\r\nConnection: close\r\n\r\n";
+  socket.send(new TextEncoder().encode(str));
+};
+socket.onmessage = (data) => {
+  console.log(new TextDecoder().decode(data));
+};
+```
+
+### Changing the Websocket Proxy URL:
 You can change the URL of the websocket proxy by using `libcurl.set_websocket`.
 ```js
 libcurl.set_websocket("ws://localhost:6001/");
@@ -96,7 +149,7 @@ libcurl.set_websocket("ws://localhost:6001/");
 If the websocket proxy URL is not set and one of the other API functions is called, an error will be thrown. Note that this URL must end with a trailing slash.
 
 ### Getting Libcurl's Output:
-If you want more information about a connection, you can pass the `_libcurl_verbose` argument to the `libcurl.fetch` function.
+If you want more information about a connection, you can pass the `_libcurl_verbose` argument to the `libcurl.fetch` function. These are the same messages that you would see if you ran `curl -v` on the command line.
 ```js
 await libcurl.fetch("https://example.com", {_libcurl_verbose: 1});
 ```

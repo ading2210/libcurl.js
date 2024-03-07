@@ -193,12 +193,9 @@ async function libcurl_fetch(url, params={}) {
 
 function set_websocket_url(url) {
   websocket_url = url;
-  if (!Module.websocket && ENVIRONMENT_IS_WEB) {
-    document.addEventListener("libcurl_load", () => {
-      set_websocket_url(url);
-    });
+  if (Module.websocket) {
+    Module.websocket.url = url;
   }
-  else Module.websocket.url = url;
 }
 
 function get_version() {

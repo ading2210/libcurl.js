@@ -76,6 +76,8 @@ Most of the standard Fetch API's features are supported, with the exception of:
 - Sending credentials/cookies automatically
 - Caching
 
+The response may contain multiple HTTP headers with the same name, which the `Headers` object isn't able to properly represent. If this matters to you, use `response.raw_headers`, which is an array of key value pairs, instead of `response.headers`.
+
 Note that there is a hard limit of 50 active TCP connections due to emscripten limitations. 
 
 ### Creating WebSocket Connections:

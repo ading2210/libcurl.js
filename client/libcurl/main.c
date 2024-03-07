@@ -167,12 +167,16 @@ void finish_request(CURLMsg *curl_msg) {
   cJSON* url_item = cJSON_CreateString(response_url);
   cJSON_AddItemToObject(response_json, "url", url_item);
 
-  cJSON* headers_item = cJSON_CreateObject();
+  cJSON* headers_item = cJSON_CreateArray();
   struct curl_header *prev_header = NULL;
   struct curl_header *header = NULL;
   while ((header = curl_easy_nextheader(http_handle, CURLH_HEADER, -1, prev_header))) {
-    cJSON* header_entry = cJSON_CreateString(header->value);
-    cJSON_AddItemToObject(headers_item, header->name, header_entry);
+    cJSON* header_key_entry = cJSON_CreateString(header->name);
+    cJSON* header_value_entry = cJSON_CreateString(header->value);
+    cJSON* header_pair_item = cJSON_CreateArray();
+    cJSON_AddItemToArray(header_pair_item, header_key_entry);
+    cJSON_AddItemToArray(header_pair_item, header_value_entry);
+    cJSON_AddItemToArray(headers_item, header_pair_item);
     prev_header = header;
   }
   cJSON_AddItemToObject(response_json, "headers", headers_item);

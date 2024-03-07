@@ -132,8 +132,11 @@ function create_response(response_data, response_info) {
     writable: false,
     value: new Headers()
   });
-  for (let header_name in response_info.headers) {
-    let header_value = response_info.headers[header_name];
+  Object.defineProperty(response_obj, "raw_headers", {
+    writable: false,
+    value: response_info.headers
+  });
+  for (let [header_name, header_value] of response_info.headers) {
     response_obj.headers.append(header_name, header_value);
   }
   

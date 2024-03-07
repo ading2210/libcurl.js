@@ -8,8 +8,11 @@ This is an experimental port of [libcurl](https://curl.se/libcurl/) to WebAssemb
 - Support for up to TLS 1.3
 - Support for tunneling HTTP/2 connections 
 - Support for proxying WebSockets
-- Bypass CORS restrictions
+- Bypass CORS restrictions without compromising on privacy
 - Low latency via multiplexing and reusing open connections
+- Use raw TLS sockets in the browser
+- Custom network transport support
+- Works inside web workers but does not need special permissions or headers
 
 ## Building:
 You can build this project by running the following commands:
@@ -31,7 +34,7 @@ The build script will generate `client/out/libcurl.js` as well as `client/out/li
 ## Javascript API:
 
 ### Importing the Library:
-To import the library, follow the build instructions in the previous section, and copy `client/out/libcurl.js` and `client/out/libcurl.wasm` to a directory of your choice. After the script is loaded, call `libcurl.load_wasm`, specifying the url of the `libcurl.wasm` file.
+To import the library, follow the build instructions in the previous section, and copy `client/out/libcurl.js` and `client/out/libcurl.wasm` to a directory of your choice. After the script is loaded, call `libcurl.load_wasm`, specifying the url of the `libcurl.wasm` file. You do not need to call `libcurl.load_wasm` if you use the `libcurl_full.js` file, as the WASM will be bundled into the JS file.
 
 ```html
 <script defer src="./out/libcurl.js" onload="libcurl.load_wasm('/out/libcurl.wasm');"></script>
@@ -87,7 +90,7 @@ The valid WebSocket options are:
 
 The following callbacks are available:
 - `CurlWebSocket.onopen` - Called when the websocket is successfully connected.
-- `CurlWebSocket.message` - Called when a websocket message is received from the server. The data is passed to the first argument of the function, and it will be either a `Uint8Array` or a string, depending on the type of message.
+- `CurlWebSocket.onmessage` - Called when a websocket message is received from the server. The data is passed to the first argument of the function, and it will be either a `Uint8Array` or a string, depending on the type of message.
 - `CurlWebSocket.onclose` - Called when the websocket is cleanly closed with no error.
 - `CurlWebSocket.onerror` - Called when the websocket encounters an unexpected error. The [error code](https://curl.se/libcurl/c/libcurl-errors.html) is passed to the first argument of the function.
 
@@ -169,11 +172,13 @@ Libcurl.js will also output some error messages to the browser console. You can 
 - `type` - The type of message. This will be one of the following: `"log"`, `"warn"`, `"error"`
 - `text` - The text that is to be logged.
 
+This may be useful if you are running libcurl.js inside a web worker and do not have access to the regular console API.
+
 ### Getting Version Info:
 You can get version information from the `libcurl.version` object. This object will also contain the versions of all the C libraries that libcurl.js uses. `libcurl.version.lib` returns the version of libcurl.js itself. 
 
 ### Getting the CA Certificates Bundle:
-You can get the CA cert bundle that libcurl uses by calling `libcurl.get_cacert()`. The function will return a string with the certificates in PEM format. The cert bundle comes from the [official curl website](https://curl.se/docs/caextract.html), which is extracted from the Mozilla Firefox source code. 
+You can get the CA cert bundle that libcurl uses by calling `libcurl.get_cacert`. The function will return a string with the certificates in PEM format. The cert bundle comes from the [official curl website](https://curl.se/docs/caextract.html), which is extracted from the Mozilla Firefox source code. 
 
 ## Proxy Server:
 The proxy server consists of a standard [Wisp](https://github.com/MercuryWorkshop/wisp-protocol) server, allowing multiple TCP connections to share the same websocket.

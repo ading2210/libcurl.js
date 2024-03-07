@@ -44,7 +44,6 @@ class FakeWebSocket extends EventTarget {
 
     this.socket.onerror = (error) => {
       this.status = this.CLOSED;
-      error_msg(`websocket ${this.url} encountered an error (${error})`);
       let error_event = new Event("error");
       this.dispatchEvent(error_event);
       this.onerror(error_event);

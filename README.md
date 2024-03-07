@@ -2,6 +2,26 @@
 
 This is an experimental port of [libcurl](https://curl.se/libcurl/) to WebAssembly for use in the browser. It provides an interface compatible with the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), allowing you to proxy HTTPS requests from the browser with full TLS encryption. Unlike previous implementations, the proxy server cannot read the contents of your requests. 
 
+## Table of Contents:
+- [Features](#features)
+- [Building](#building)
+- [Javascript API](#javascript-api)
+  * [Importing the Library](#importing-the-library)
+  * [Making HTTP Requests](#making-http-requests)
+  * [Creating WebSocket Connections](#creating-websocket-connections)
+  * [Using TLS Sockets](#using-tls-sockets)
+  * [Changing the Network Transport](#changing-the-network-transport)
+  * [Changing the Websocket Proxy URL](#changing-the-websocket-proxy-url)
+  * [Getting Libcurl's Output](#getting-libcurl-s-output)
+  * [Getting Error Strings](#getting-error-strings)
+  * [Getting Version Info](#getting-version-info)
+  * [Getting the CA Certificates Bundle](#getting-the-ca-certificates-bundle)
+- [Proxy Server](#proxy-server)
+- [Copyright](#copyright)
+  * [Copyright Notice](#copyright-notice)
+
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
+
 ## Features:
 - Fetch compatible API
 - End to end encryption between the browser and the destination server
@@ -175,6 +195,14 @@ Libcurl.js will also output some error messages to the browser console. You can 
 - `text` - The text that is to be logged.
 
 This may be useful if you are running libcurl.js inside a web worker and do not have access to the regular console API.
+
+### Getting Error Strings:
+Libcurl.js reports errors based on the [error codes](https://curl.se/libcurl/c/libcurl-errors.html) defined by the libcurl C library. The `libcurl.get_error_string` function can be used to get an error string from an error code. 
+
+```js
+console.log(libcurl.get_error_string(56));
+//"Failure when receiving data from the peer"
+```
 
 ### Getting Version Info:
 You can get version information from the `libcurl.version` object. This object will also contain the versions of all the C libraries that libcurl.js uses. `libcurl.version.lib` returns the version of libcurl.js itself. 

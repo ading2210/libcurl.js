@@ -106,6 +106,7 @@ class CurlWebSocket {
     this.connected = false;
 
     if (error) {
+      error_msg(`Websocket "${this.url}" encountered error code ${error}: ${get_error_str(error)}`);
       this.onerror(error);
     }
     else {

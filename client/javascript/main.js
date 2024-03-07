@@ -244,6 +244,7 @@ api = {
   CurlWebSocket: CurlWebSocket,
   TLSSocket: TLSSocket,
   get_cacert: get_cacert,
+  get_error_string: get_error_str,
 
   wisp_connections: _wisp_connections,
   WispConnection: WispConnection,

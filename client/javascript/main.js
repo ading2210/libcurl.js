@@ -43,10 +43,11 @@ function check_loaded(check_websocket) {
 }
 
 //low level interface with c code
-function perform_request(url, params, js_data_callback, js_end_callback, body=null) {
+function perform_request(url, params, js_data_callback, js_end_callback, js_headers_callback, body=null) {
   let params_str = JSON.stringify(params);
   let end_callback_ptr;
   let data_callback_ptr;
+  let headers_callback_ptr;
   let url_ptr = allocate_str(url);
   let params_ptr = allocate_str(params_str);
 
@@ -57,29 +58,36 @@ function perform_request(url, params, js_data_callback, js_end_callback, body=nu
     body_length = body.length;
   }
 
-  let end_callback = (error, response_json_ptr) => {
-    let response_json = UTF8ToString(response_json_ptr);
-    let response_info = JSON.parse(response_json);
-
+  function end_callback(error) {
     Module.removeFunction(end_callback_ptr);
     Module.removeFunction(data_callback_ptr);
-    if (body_ptr) _free(body_ptr);
-    _free(url_ptr);
-    _free(response_json_ptr);
+    Module.removeFunction(headers_callback_ptr);
     
     active_requests --;
-    js_end_callback(error, response_info);
+    js_end_callback(error);
   }
 
-  let data_callback = (chunk_ptr, chunk_size) => {
+  function data_callback(chunk_ptr, chunk_size) {
     let data = Module.HEAPU8.subarray(chunk_ptr, chunk_ptr + chunk_size);
     let chunk = new Uint8Array(data);
     js_data_callback(chunk);
   }
 
-  end_callback_ptr = Module.addFunction(end_callback, "vii");
+  function headers_callback(response_json_ptr) {
+    let response_json = UTF8ToString(response_json_ptr);
+    let response_info = JSON.parse(response_json);
+
+    if (body_ptr) _free(body_ptr);
+    _free(url_ptr);
+    _free(response_json_ptr);
+
+    js_headers_callback(response_info);
+  }
+
+  end_callback_ptr = Module.addFunction(end_callback, "vi");
+  headers_callback_ptr = Module.addFunction(headers_callback, "vi");
   data_callback_ptr = Module.addFunction(data_callback, "vii");
-  let http_handle = _start_request(url_ptr, params_ptr, data_callback_ptr, end_callback_ptr, body_ptr, body_length);
+  let http_handle = _start_request(url_ptr, params_ptr, data_callback_ptr, end_callback_ptr, headers_callback_ptr, body_ptr, body_length);
   _free(params_ptr);
   
   active_requests ++;
@@ -167,24 +175,33 @@ async function create_options(params) {
 //wrap perform_request in a promise
 function perform_request_async(url, params, body) {
   return new Promise((resolve, reject) => {
-    let chunks = [];
-    let data_callback = (new_data) => {
-      chunks.push(new_data);
+    let stream_controller;
+    let stream = new ReadableStream({
+      start(controller) {
+        stream_controller = controller;
+      }
+    });
+
+    function data_callback(new_data) {
+      stream_controller.enqueue(new_data);
     };
-    
-    let finish_callback = (error, response_info) => {
+
+    function headers_callback(response_info) {
+      let response_obj = create_response(stream, response_info);
+      resolve(response_obj);
+    }
+
+    function finish_callback(error) {
       if (error != 0) {
         let error_str = `Request failed with error code ${error}: ${get_error_str(error)}`;
         if (error != 0) error_msg(error_str);
         reject(error_str);
         return;
       }
-      let response_data = merge_arrays(chunks);
-      chunks = null;
-      let response_obj = create_response(response_data, response_info);
-      resolve(response_obj);
+      stream_controller.close();
     }
-    perform_request(url, params, data_callback, finish_callback, body);
+    
+    perform_request(url, params, data_callback, finish_callback, headers_callback, body);
   });
 }
 

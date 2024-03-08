@@ -24,7 +24,6 @@ struct curl_blob cacert_blob;
 
 size_t write_function(void *data, size_t size, size_t nmemb, struct RequestInfo *request_info) {
   if (!request_info->headers_received) {
-    request_info->headers_received = 1;
     forward_headers(request_info);
   }
 
@@ -156,6 +155,7 @@ CURL* start_request(const char* url, const char* json_params, DataCallback data_
 }
 
 void forward_headers(struct RequestInfo *request_info) {
+  request_info->headers_received = 1;
   CURL *http_handle = request_info->http_handle;
 
   //create new json object with response info
@@ -201,6 +201,9 @@ void finish_request(CURLMsg *curl_msg) {
   struct RequestInfo *request_info;
   CURL *http_handle = curl_msg->easy_handle;
   curl_easy_getinfo(http_handle, CURLINFO_PRIVATE, &request_info);
+  if (!request_info->headers_received) {
+    forward_headers(request_info);
+  }
 
   int error = (int) curl_msg->data.result;
   long response_code;

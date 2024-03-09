@@ -49,5 +49,8 @@ class JSTest(unittest.TestCase):
   def test_redirect_out(self):
     self.run_test("redirect_out.js")
 
+  def test_tls_socket(self):
+    self.run_test("test_tls_socket.js")
+
 if __name__ == "__main__":
   unittest.main()

@@ -21,8 +21,12 @@ class TLSSocket {
   }
 
   connect() {
+    let response_info;
     let data_callback = () => {};
-    let finish_callback = (error, response_info) => {
+    let headers_callback = (info) => {
+      response_info = info;
+    }
+    let finish_callback = (error) => {
       if (error === 0) {
         this.connected = true;
         this.event_loop = setInterval(() => {
@@ -42,7 +46,7 @@ class TLSSocket {
       request_options._libcurl_verbose = 1;
     }
 
-    this.http_handle = perform_request(this.url, request_options, data_callback, finish_callback, null);
+    this.http_handle = perform_request(this.url, request_options, data_callback, finish_callback, headers_callback, null);
   }
 
   recv() {

@@ -20,7 +20,7 @@ This is an experimental port of [libcurl](https://curl.se/libcurl/) to WebAssemb
 - [Copyright](#copyright)
   * [Copyright Notice](#copyright-notice)
 
-<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
+<small>Table of contents generated with [markdown-toc](http://ecotrust-canada.github.io/markdown-toc/).</small>
 
 ## Features:
 - Fetch compatible API
@@ -32,7 +32,8 @@ This is an experimental port of [libcurl](https://curl.se/libcurl/) to WebAssemb
 - Low latency via multiplexing and reusing open connections
 - Use raw TLS sockets in the browser
 - Custom network transport support
-- Works inside web workers but does not need special permissions or headers
+- Works inside web workers without needing special permissions or headers
+- Works in all major browsers (Chromium >= 64, Firefox >= 65, Safari >= 14)
 
 ## Building:
 You can build this project by running the following commands:
@@ -96,9 +97,9 @@ Most of the standard Fetch API's features are supported, with the exception of:
 - Sending credentials/cookies automatically
 - Caching
 
-The response may contain multiple HTTP headers with the same name, which the `Headers` object isn't able to properly represent. If this matters to you, use `response.raw_headers`, which is an array of key value pairs, instead of `response.headers`.
+The response may contain multiple HTTP headers with the same name, which the `Headers` object isn't able to properly represent. If this matters to you, use `response.raw_headers`, which is an array of key value pairs, instead of `response.headers`. There is support for streaming the response body using a `ReadableStream`.
 
-Note that there is a hard limit of 50 active TCP connections due to emscripten limitations. 
+Also note that there is a hard limit of 50 active TCP connections due to emscripten limitations. 
 
 ### Creating WebSocket Connections:
 To use WebSockets, create a `libcurl.CurlWebSocket` object, which takes the following arguments:

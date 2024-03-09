@@ -181,16 +181,14 @@ function perform_request_async(url, params, body) {
         stream_controller = controller;
       }
     });
-
+    
     function data_callback(new_data) {
       stream_controller.enqueue(new_data);
-    };
-
+    }
     function headers_callback(response_info) {
       let response_obj = create_response(stream, response_info);
       resolve(response_obj);
     }
-
     function finish_callback(error) {
       if (error != 0) {
         let error_str = `Request failed with error code ${error}: ${get_error_str(error)}`;

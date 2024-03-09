@@ -1,7 +1,7 @@
 # Libcurl.js Changelog:
 
 ## v0.5.0 (3/8/24):
-- Added support for readable streams in the response
+- Added support for streaming HTTP responses via a readable stream
 
 ## v0.4.2 (3/7/24):
 - Expose a function to get error strings

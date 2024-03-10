@@ -107,17 +107,6 @@ function perform_request(url, params, js_data_callback, js_end_callback, js_head
   return http_handle;
 }
 
-function merge_arrays(arrays) {
-  let total_len = arrays.reduce((acc, val) => acc + val.length, 0);
-  let new_array = new Uint8Array(total_len);
-  let offset = 0;
-  for (let array of arrays) {
-    new_array.set(array, offset);
-    offset += array.length;
-  }
-  return new_array;
-}
-
 function create_response(response_data, response_info) {
   response_info.ok = response_info.status >= 200 && response_info.status < 300;
   response_info.statusText = status_messages[response_info.status] || "";
@@ -151,22 +140,30 @@ function create_response(response_data, response_info) {
   return response_obj;
 }
 
-
 async function create_options(params) {
   let body = null;
-  if (params.body) {
-    body = await data_to_array(params.body);
-    params.body = true;
+  let request_obj = new Request("/", params);
+  let array_buffer = await request_obj.arrayBuffer();
+  if (array_buffer.byteLength > 0) {
+    body = new Uint8Array(array_buffer);
   }
+  
+  let headers = params.headers || {};
+  if (params.headers instanceof Headers) {
+    for(let [key, value] of headers) {
+      headers[key] = value;
+    }
+  }
+  params.headers = new HeadersDict(headers);
 
-  if (!params.headers) params.headers = {};
-  params.headers = new HeadersDict(params.headers);
-
-  if (params.referer) {
-    params.headers["Referer"] = params.referer;
+  if (params.referrer) {
+    params.headers["Referer"] = params.referrer;
   }
   if (!params.headers["User-Agent"]) {
     params.headers["User-Agent"] = navigator.userAgent;
+  }
+  if (body) {
+    params.headers["Content-Type"] = request_obj.headers.get("Content-Type");
   }
 
   return body;

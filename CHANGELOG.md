@@ -2,6 +2,8 @@
 
 ## v0.5.0 (3/8/24):
 - Added support for streaming HTTP responses via a readable stream
+- Improve compatibility for older browsers
+- Support for all types of fetch request bodies
 
 ## v0.4.2 (3/7/24):
 - Expose a function to get error strings

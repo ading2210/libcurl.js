@@ -73,7 +73,6 @@ class FakeWebSocket extends EventTarget {
   }
 
   send(data) {
-    let is_text = typeof data === "string";
     if (this.status === this.CONNECTING) {
       throw new DOMException("websocket not ready yet");
     }
@@ -81,15 +80,18 @@ class FakeWebSocket extends EventTarget {
       return;
     }
 
-    (async () => {
-      if (is_text) {
-        this.socket.send(data);
-      }
-      else {
-        let data_array = await data_to_array(data);
-        this.send(data_array);
-      }
-    })();
+    if (data instanceof Blob) {
+      (async () => {
+        let array_buffer = await data.arrayBuffer();
+        this.socket.send(new Uint8Array(array_buffer));
+      })();
+    }
+    else if (typeof data === "string") {
+      this.socket.send(data);
+    }
+    else {
+      this.socket.send(data_to_array(data));
+    }
   }
 
   close() {

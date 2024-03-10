@@ -39,16 +39,11 @@ function get_error_str(error_code) {
   return UTF8ToString(error_ptr);
 }
 
-//convert any data to a uint8array
-async function data_to_array(data) {
+//convert various data types to a uint8array (blobs excluded)
+function data_to_array(data) {
   let data_array = null;
   if (typeof data === "string") {
     data_array = new TextEncoder().encode(data);
-  }
-
-  else if (data instanceof Blob) {
-    let array_buffer = await data.arrayBuffer();
-    data_array = new Uint8Array(array_buffer);
   }
 
   //any typedarray
@@ -67,16 +62,9 @@ async function data_to_array(data) {
     }
   }
 
-  else if (data instanceof ReadableStream) {
-    let chunks = [];
-    for await (let chunk of data) {
-      chunks.push(chunk);
-    }
-    data_array = merge_arrays(chunks);
-  }
-
   else {
     throw "invalid data type to be sent";
   }
+
   return data_array;
 }

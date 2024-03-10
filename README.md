@@ -17,6 +17,7 @@ This is an experimental port of [libcurl](https://curl.se/libcurl/) to WebAssemb
   * [Getting Version Info](#getting-version-info)
   * [Getting the CA Certificates Bundle](#getting-the-ca-certificates-bundle)
 - [Proxy Server](#proxy-server)
+- [Project Structure](#project-structure)
 - [Copyright](#copyright)
   * [Copyright Notice](#copyright-notice)
 
@@ -222,6 +223,17 @@ server/run.sh --static=./client
 ```
 
 For a full list of server arguments, see the [wisp-server-python documentation](https://github.com/MercuryWorkshop/wisp-server-python).
+
+## Project Structure:
+- `client` - Contains all the client-side code.
+  - `fragments` - Various patches for the JS that emscripten produces. The script which does the patching can be found at `client/tools/patch_js.py`.
+  - `javascript` - All the code for the Javascript API, and for interfacing with the compiled C code.
+  - `libcurl` - The C code that interfaces with the libcurl library and gets compiled by emscripten.
+  - `tests` - Unit tests and the scripts for running them.
+  - `tools` - Helper shell scripts for the build process, and for compiling the various C libraries.
+  - `wisp_client` - A submodule for the Wisp client library.
+- `server` - Contains all the server-side code for running the websocket proxy server. 
+  - `wisp_sever` - A submodule for the Python Wisp server.
 
 ## Copyright:
 This project is licensed under the GNU AGPL v3.

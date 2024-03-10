@@ -1,6 +1,9 @@
 # Libcurl.js Changelog:
 
-## v0.5.0 (3/8/24):
+## v0.5.1 (3/10/24):
+- Added support for aborting requests
+
+## v0.5.0 (3/9/24):
 - Added support for streaming HTTP responses via a readable stream
 - Improve compatibility for older browsers
 - Support for all types of fetch request bodies

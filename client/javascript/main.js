@@ -173,6 +173,25 @@ async function create_options(params) {
 function perform_request_async(url, params, body) {
   return new Promise((resolve, reject) => {
     let stream_controller;
+    let http_handle;
+    let response_obj;
+    let aborted = false;
+
+    //handle abort signals
+    if (params.signal instanceof AbortSignal) {
+      params.signal.addEventListener("abort", () => {
+        if (aborted) return;
+        aborted = true;
+        _cleanup_handle(http_handle);
+        if (!response_obj) {
+          reject(new DOMException("The operation was aborted."));
+        }
+        else {
+          stream_controller.error("The operation was aborted.");
+        }
+      });
+    }
+
     let stream = new ReadableStream({
       start(controller) {
         stream_controller = controller;
@@ -180,10 +199,21 @@ function perform_request_async(url, params, body) {
     });
     
     function data_callback(new_data) {
-      stream_controller.enqueue(new_data);
+      try {
+        stream_controller.enqueue(new_data);  
+      }
+      catch (e) {
+        //the readable stream has been closed elsewhere, so cancel the request
+        if (e instanceof TypeError) {
+          _cleanup_handle(http_handle);
+        }
+        else {
+          throw e;
+        }
+      }
     }
     function headers_callback(response_info) {
-      let response_obj = create_response(stream, response_info);
+      response_obj = create_response(stream, response_info);
       resolve(response_obj);
     }
     function finish_callback(error) {
@@ -196,7 +226,7 @@ function perform_request_async(url, params, body) {
       stream_controller.close();
     }
     
-    perform_request(url, params, data_callback, finish_callback, headers_callback, body);
+    http_handle = perform_request(url, params, data_callback, finish_callback, headers_callback, body);
   });
 }
 

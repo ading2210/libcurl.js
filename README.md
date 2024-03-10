@@ -94,11 +94,10 @@ console.log(await r.text());
 
 Most of the standard Fetch API's features are supported, with the exception of:
 - CORS enforcement
-- `FormData` or `URLSearchParams` as the request body
 - Sending credentials/cookies automatically
 - Caching
 
-The response may contain multiple HTTP headers with the same name, which the `Headers` object isn't able to properly represent. If this matters to you, use `response.raw_headers`, which is an array of key value pairs, instead of `response.headers`. There is support for streaming the response body using a `ReadableStream`.
+The response may contain multiple HTTP headers with the same name, which the `Headers` object isn't able to properly represent. If this matters to you, use `response.raw_headers`, which is an array of key value pairs, instead of `response.headers`. There is support for streaming the response body using a `ReadableStream`, as well as canceling requests using an `AbortSignal`.
 
 Also note that there is a hard limit of 50 active TCP connections due to emscripten limitations. 
 

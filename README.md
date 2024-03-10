@@ -160,7 +160,7 @@ The `TLSSocket.send` function can be used to send data to the socket. The only a
 let socket = new libcurl.TLSSocket("ading.dev", 443, {verbose: 1});
 socket.onopen = () => {
   console.log("socket connected!");
-  let str = "GET /all HTTP/1.1\r\nHost: ading.dev\r\nConnection: close\r\n\r\n";
+  let str = "GET / HTTP/1.1\r\nHost: ading.dev\r\nConnection: close\r\n\r\n";
   socket.send(new TextEncoder().encode(str));
 };
 socket.onmessage = (data) => {

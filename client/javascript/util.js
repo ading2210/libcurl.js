@@ -39,32 +39,36 @@ function get_error_str(error_code) {
   return UTF8ToString(error_ptr);
 }
 
+function merge_arrays(arrays) {
+  let total_len = arrays.reduce((acc, val) => acc + val.length, 0);
+  let new_array = new Uint8Array(total_len);
+  let offset = 0;
+  for (let array of arrays) {
+    new_array.set(array, offset);
+    offset += array.length;
+  }
+  return new_array;
+}
+
 //convert various data types to a uint8array (blobs excluded)
 function data_to_array(data) {
-  let data_array = null;
-  if (typeof data === "string") {
-    data_array = new TextEncoder().encode(data);
+  //data already in correct type
+  if (data instanceof Uint8Array) {
+    return data;  
   }
 
-  //any typedarray
+  else if (typeof data === "string") {
+    return new TextEncoder().encode(data);
+  }
+
   else if (data instanceof ArrayBuffer) {
-    //dataview objects
-    if (ArrayBuffer.isView(data) && data instanceof DataView) {
-      data_array = new Uint8Array(data.buffer);
-    }
-    //regular typed arrays
-    else if (ArrayBuffer.isView(data)) {
-      data_array = Uint8Array.from(data);
-    }
-    //regular arraybuffers
-    else {
-      data_array = new Uint8Array(data);
-    }
+    return new Uint8Array(data);
   }
 
-  else {
-    throw "invalid data type to be sent";
+  //dataview objects or any other typedarray
+  else if (ArrayBuffer.isView(data)) {
+    return new Uint8Array(data.buffer);
   }
 
-  return data_array;
+  throw "invalid data type to be sent";
 }

@@ -76,12 +76,16 @@ function perform_request(url, params, js_data_callback, js_end_callback, js_head
   function headers_callback(response_json_ptr) {
     let response_json = UTF8ToString(response_json_ptr);
     let response_info = JSON.parse(response_json);
-
+    
     if (body_ptr) _free(body_ptr);
     _free(url_ptr);
     _free(response_json_ptr);
 
-    js_headers_callback(response_info);
+    //if the response status is 0, an error occurred,
+    //but we don't know what it is yet
+    if (response_info.status !== 0) {
+      js_headers_callback(response_info);
+    }    
   }
 
   end_callback_ptr = Module.addFunction(end_callback, "vi");
@@ -218,12 +222,14 @@ function perform_request_async(url, params, body) {
     }
     function finish_callback(error) {
       if (error != 0) {
-        let error_str = `Request failed with error code ${error}: ${get_error_str(error)}`;
-        if (error != 0) error_msg(error_str);
-        reject(error_str);
+        error_msg(`Request "${url}" failed with error code ${error}: ${get_error_str(error)}`);
+        reject(`Request failed with error code ${error}: ${get_error_str(error)}`);
         return;
       }
-      stream_controller.close();
+      try {
+        stream_controller.close();
+      } //this will only fail if the stream is already errored or closed, which isn't a problem
+      catch {}
     }
     
     http_handle = perform_request(url, params, data_callback, finish_callback, headers_callback, body);

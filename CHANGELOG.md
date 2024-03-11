@@ -1,5 +1,8 @@
 # Libcurl.js Changelog:
 
+## v0.5.2 (3/10/24):
+- Fix a bug with error handling
+
 ## v0.5.1 (3/10/24):
 - Added support for aborting requests
 

@@ -78,6 +78,9 @@ rm $MODULE_FILE
 #add version number and copyright notice
 VERSION=$(cat package.json | jq -r '.version')
 sed -i "s/__library_version__/$VERSION/" $OUT_FILE
+WISP_VERSION=$(cat $WISP_CLIENT/package.json | jq -r '.version')
+sed -i "s/__wisp_version__/$WISP_VERSION/" $OUT_FILE
+
 
 #add extra libraries
 sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/copyright.js" $OUT_FILE

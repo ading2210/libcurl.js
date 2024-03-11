@@ -32,6 +32,7 @@ var wasm_ready = false;
 var version_dict = null;
 var api = null;
 const libcurl_version = "__library_version__";
+const wisp_version = "__wisp_version__";
 
 function check_loaded(check_websocket) {
   if (!wasm_ready) {
@@ -258,6 +259,7 @@ function get_version() {
   _free(version_ptr);
   version_dict = JSON.parse(version_str);
   version_dict.lib = libcurl_version;
+  version_dict.wisp = wisp_version;
   return version_dict;
 }
 

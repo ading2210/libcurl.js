@@ -1,5 +1,9 @@
 # Libcurl.js Changelog:
 
+## v0.5.3 (3/9/24):
+- Update Wisp client and server, which improves error handling
+- Expose the wisp-client-js version in the API
+
 ## v0.5.2 (3/10/24):
 - Fix a bug with error handling
 

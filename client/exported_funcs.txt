@@ -1,5 +1,7 @@
 init_curl
 start_request
+cleanup_handle
+create_handle
 tick_request
 active_requests
 
@@ -7,10 +9,13 @@ get_version
 get_cacert
 get_error_str
 
+http_set_options
+http_get_info
+
+websocket_set_options
 recv_from_websocket
 send_to_websocket
 close_websocket
-cleanup_handle
 get_result_size
 get_result_buffer
 get_result_code

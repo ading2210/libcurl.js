@@ -43,21 +43,10 @@ function check_loaded(check_websocket) {
   }
 }
 
-//low level interface with c code
-function perform_request(url, params, js_data_callback, js_end_callback, js_headers_callback, body=null) {
-  let params_str = JSON.stringify(params);
+function create_handle(url, js_data_callback, js_end_callback, js_headers_callback) {
   let end_callback_ptr;
   let data_callback_ptr;
   let headers_callback_ptr;
-  let url_ptr = allocate_str(url);
-  let params_ptr = allocate_str(params_str);
-
-  let body_ptr = null;
-  let body_length = 0;
-  if (body) { //assume body is an int8array
-    body_ptr = allocate_array(body);
-    body_length = body.length;
-  }
 
   function end_callback(error) {
     Module.removeFunction(end_callback_ptr);
@@ -74,29 +63,23 @@ function perform_request(url, params, js_data_callback, js_end_callback, js_head
     js_data_callback(chunk);
   }
 
-  function headers_callback(response_json_ptr) {
-    let response_json = UTF8ToString(response_json_ptr);
-    let response_info = JSON.parse(response_json);
-    
-    if (body_ptr) _free(body_ptr);
-    _free(url_ptr);
-    _free(response_json_ptr);
-
-    //if the response status is 0, an error occurred,
-    //but we don't know what it is yet
-    if (response_info.status !== 0) {
-      js_headers_callback(response_info);
-    }    
+  function headers_callback() {
+    js_headers_callback();
   }
 
   end_callback_ptr = Module.addFunction(end_callback, "vi");
-  headers_callback_ptr = Module.addFunction(headers_callback, "vi");
+  headers_callback_ptr = Module.addFunction(headers_callback, "v");
   data_callback_ptr = Module.addFunction(data_callback, "vii");
-  let http_handle = _start_request(url_ptr, params_ptr, data_callback_ptr, end_callback_ptr, headers_callback_ptr, body_ptr, body_length);
-  _free(params_ptr);
+  let http_handle = c_func(_create_handle, [url, data_callback_ptr, end_callback_ptr, headers_callback_ptr]);
   
-  active_requests ++;
+  return http_handle;
+}
+
+function start_request(http_handle) {
+  _start_request(http_handle);
   _tick_request();
+  active_requests ++;
+
   if (!event_loop) {
     event_loop = setInterval(() => {
       if (_active_requests() || active_requests) {
@@ -108,8 +91,6 @@ function perform_request(url, params, js_data_callback, js_end_callback, js_head
       }
     }, 0);
   }
-
-  return http_handle;
 }
 
 function create_response(response_data, response_info) {
@@ -217,8 +198,9 @@ function perform_request_async(url, params, body) {
         }
       }
     }
-    function headers_callback(response_info) {
-      response_obj = create_response(stream, response_info);
+    function headers_callback() {
+      let response_json = c_func_str(_http_get_info, [http_handle]);
+      response_obj = create_response(stream, JSON.parse(response_json));
       resolve(response_obj);
     }
     function finish_callback(error) {
@@ -232,8 +214,13 @@ function perform_request_async(url, params, body) {
       } //this will only fail if the stream is already errored or closed, which isn't a problem
       catch {}
     }
+
+    let body_length = body ? body.length : 0;
+    let params_json = JSON.stringify(params);
     
-    http_handle = perform_request(url, params, data_callback, finish_callback, headers_callback, body);
+    http_handle = create_handle(url, data_callback, finish_callback, headers_callback);
+    c_func(_http_set_options, [http_handle, params_json, body, body_length]);
+    start_request(http_handle);
   });
 }
 

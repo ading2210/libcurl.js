@@ -22,11 +22,8 @@ class CurlWebSocket {
   }
 
   connect() {
-    let response_info;
     let data_callback = () => {};
-    let headers_callback = (info) => {
-      response_info = info;
-    }
+    let headers_callback = () => {};
     let finish_callback = (error) => {
       if (error === 0) {
         this.connected = true;
@@ -39,7 +36,7 @@ class CurlWebSocket {
       else {
         this.cleanup(error);
       }
-    }
+    };
     let request_options = {
       headers: this.options.headers || {}
     };
@@ -49,7 +46,11 @@ class CurlWebSocket {
     if (this.options.verbose) {
       request_options._libcurl_verbose = 1;
     }
-    this.http_handle = perform_request(this.url, request_options, data_callback, finish_callback, headers_callback, null);
+
+    this.http_handle = create_handle(this.url, data_callback, finish_callback, headers_callback);
+    c_func(_http_set_options, [this.http_handle, JSON.stringify(request_options), null, 0]);
+    _websocket_set_options(this.http_handle);
+    start_request(this.http_handle);
   }
 
   recv() {

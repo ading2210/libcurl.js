@@ -72,3 +72,31 @@ function data_to_array(data) {
 
   throw "invalid data type to be sent";
 }
+
+//c function wrapper
+function c_func(target, args=[]) {
+  let str_pointers = [];
+  for (let i = 0; i < args.length; i++) {
+    if (typeof args[i] !== "string") {
+      continue;
+    }
+    let ptr = allocate_str(args[i]);
+    args[i] = ptr;
+    str_pointers.push(ptr);
+  }
+
+  let ret = target(...args);
+  for (let ptr of str_pointers) {
+    _free(ptr);
+  }
+
+  return ret;
+}
+
+//additional wrapper to free any returned strings
+function c_func_str(target, args=[]) {
+  let ptr = c_func(target, args);
+  let str = UTF8ToString(ptr);
+  _free(ptr);
+  return str;
+}

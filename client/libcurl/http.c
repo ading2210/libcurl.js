@@ -8,7 +8,7 @@
 #include "util.h"
 
 void http_set_options(CURL* http_handle, const char* json_params, const char* body, int body_length) {
-  struct RequestInfo *request_info = get_handle_info(http_handle);
+  struct RequestInfo *request_info = get_request_info(http_handle);
 
   //some default options
   curl_easy_setopt(http_handle, CURLOPT_FOLLOWLOCATION, 1);
@@ -18,20 +18,13 @@ void http_set_options(CURL* http_handle, const char* json_params, const char* bo
   //parse json options
   cJSON* request_json = cJSON_Parse(json_params);
   cJSON* item = NULL;
-  struct curl_slist* headers_list = malloc(sizeof(struct curl_slist));
+  struct curl_slist* headers_list = NULL;
 
   cJSON_ArrayForEach(item, request_json) {
     char* key = item->string;
 
     if (strcmp(key, "_libcurl_verbose") == 0) {
       curl_easy_setopt(http_handle, CURLOPT_VERBOSE, 1L);
-    }
-
-    if (strcmp(key, "_connect_only") == 0) {
-      curl_easy_setopt(http_handle, CURLOPT_CONNECT_ONLY, 1L);
-      curl_easy_setopt(http_handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-      curl_easy_setopt(http_handle, CURLOPT_SSL_ENABLE_ALPN, 0L);
-      request_info->prevent_cleanup = 1;
     }
 
     if (strcmp(key, "method") == 0 && cJSON_IsString(item)) {
@@ -73,7 +66,7 @@ void http_set_options(CURL* http_handle, const char* json_params, const char* bo
 }
 
 char* http_get_info(CURL* http_handle) {
-  struct RequestInfo *request_info = get_handle_info(http_handle);
+  struct RequestInfo *request_info = get_request_info(http_handle);
 
   //create new json object with response info
   cJSON* response_json = cJSON_CreateObject();

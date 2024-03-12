@@ -38,7 +38,7 @@ void close_websocket(CURL* http_handle) {
 }
 
 void websocket_set_options(CURL* http_handle) {
-  struct RequestInfo *request_info = get_handle_info(http_handle);
+  struct RequestInfo *request_info = get_request_info(http_handle);
   curl_easy_setopt(http_handle, CURLOPT_CONNECT_ONLY, 2L);
   request_info->prevent_cleanup = 1;
 }

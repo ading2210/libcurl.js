@@ -39,14 +39,10 @@ class TLSSocket {
         this.cleanup(error);
       }
     }
-    let request_options = {
-      _connect_only: 1,
-    }
-    if (this.options.verbose) {
-      request_options._libcurl_verbose = 1;
-    }
 
-    this.http_handle = perform_request(this.url, request_options, data_callback, finish_callback, headers_callback, null);
+    this.http_handle = create_handle(this.url, data_callback, finish_callback, headers_callback);
+    _tls_socket_set_options(this.http_handle, +this.options.verbose);
+    start_request(this.http_handle);
   }
 
   recv() {

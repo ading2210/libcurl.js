@@ -40,7 +40,7 @@ const char* get_error_str(CURLcode error_code) {
   return curl_easy_strerror(error_code);
 }
 
-struct RequestInfo *get_handle_info(CURL* http_handle) {
+struct RequestInfo *get_request_info(CURL* http_handle) {
   struct RequestInfo *request_info;
   curl_easy_getinfo(http_handle, CURLINFO_PRIVATE, &request_info);
   return request_info;

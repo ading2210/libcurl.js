@@ -55,8 +55,9 @@ CURL* create_handle(const char* url, DataCallback data_callback, EndCallback end
   struct RequestInfo *request_info = malloc(sizeof(struct RequestInfo));
   request_info->http_handle = http_handle;
   request_info->curl_msg = NULL;
-  request_info->prevent_cleanup = 0;
+  request_info->headers_list = NULL;
   request_info->headers_received = 0;
+  request_info->prevent_cleanup = 0;
   request_info->end_callback = end_callback;
   request_info->data_callback = data_callback;
   request_info->headers_callback = headers_callback;
@@ -83,7 +84,7 @@ void forward_headers(struct RequestInfo *request_info) {
 
 void finish_request(CURLMsg *curl_msg) {
   CURL *http_handle = curl_msg->easy_handle;
-  struct RequestInfo *request_info = get_handle_info(http_handle);
+  struct RequestInfo *request_info = get_request_info(http_handle);
 
   int error = (int) curl_msg->data.result;
   if (!request_info->headers_received && error == 0) {
@@ -91,7 +92,9 @@ void finish_request(CURLMsg *curl_msg) {
   }
 
   //clean up curl
-  curl_slist_free_all(request_info->headers_list);
+  if (request_info->headers_list != NULL) {
+    curl_slist_free_all(request_info->headers_list);
+  }
   (*request_info->end_callback)(error);
   if (request_info->prevent_cleanup) {
     return;
@@ -102,7 +105,7 @@ void finish_request(CURLMsg *curl_msg) {
 }
 
 void cleanup_handle(CURL* http_handle) {
-  struct RequestInfo *request_info = get_handle_info(http_handle);
+  struct RequestInfo *request_info = get_request_info(http_handle);
   curl_multi_remove_handle(multi_handle, http_handle);
   curl_easy_cleanup(http_handle);
   free(request_info);

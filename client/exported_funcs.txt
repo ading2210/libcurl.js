@@ -27,4 +27,6 @@ tls_socket_set_options
 recv_from_socket
 send_to_socket
 
+ftp_set_options
+
 free

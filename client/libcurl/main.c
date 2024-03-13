@@ -119,11 +119,6 @@ void init_curl() {
   curl_global_init(CURL_GLOBAL_DEFAULT);
   multi_handle = curl_multi_init();
 
-  //emscripten has a fairly low file descriptor limit which means
-  //we must limit the total number of active tcp connections
-  curl_multi_setopt(multi_handle, CURLMOPT_MAX_TOTAL_CONNECTIONS, 50L);
-  curl_multi_setopt(multi_handle, CURLMOPT_MAXCONNECTS, 40L);
-  
   cacert_blob.data = _cacert_pem;
   cacert_blob.len = _cacert_pem_len;
   cacert_blob.flags = CURL_BLOB_NOCOPY;

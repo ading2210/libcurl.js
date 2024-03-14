@@ -26,11 +26,10 @@ const libcurl = (function() {
 /* __extra_libraries__ */
 
 var websocket_url = null;
-var event_loop = null;
-var active_requests = 0;
 var wasm_ready = false;
 var version_dict = null;
 var api = null;
+var main_session = null;
 const libcurl_version = "__library_version__";
 const wisp_version = "__wisp_version__";
 
@@ -41,118 +40,6 @@ function check_loaded(check_websocket) {
   if (!websocket_url && check_websocket) {
     throw new Error("websocket proxy url not set, please call libcurl.set_websocket");
   }
-}
-
-function create_handle(url, js_data_callback, js_end_callback, js_headers_callback) {
-  let end_callback_ptr;
-  let data_callback_ptr;
-  let headers_callback_ptr;
-
-  function end_callback(error) {
-    Module.removeFunction(end_callback_ptr);
-    Module.removeFunction(data_callback_ptr);
-    Module.removeFunction(headers_callback_ptr);
-    
-    active_requests --;
-    js_end_callback(error);
-  }
-
-  function data_callback(chunk_ptr, chunk_size) {
-    let data = Module.HEAPU8.subarray(chunk_ptr, chunk_ptr + chunk_size);
-    let chunk = new Uint8Array(data);
-    js_data_callback(chunk);
-  }
-
-  function headers_callback() {
-    js_headers_callback();
-  }
-
-  end_callback_ptr = Module.addFunction(end_callback, "vi");
-  headers_callback_ptr = Module.addFunction(headers_callback, "v");
-  data_callback_ptr = Module.addFunction(data_callback, "vii");
-  let http_handle = c_func(_create_handle, [url, data_callback_ptr, end_callback_ptr, headers_callback_ptr]);
-  
-  return http_handle;
-}
-
-function start_request(http_handle) {
-  _start_request(http_handle);
-  _tick_request();
-  active_requests ++;
-
-  if (!event_loop) {
-    event_loop = setInterval(() => {
-      if (_active_requests() || active_requests) {
-        _tick_request();
-      }
-      else {
-        clearInterval(event_loop);
-        event_loop = null;
-      }
-    }, 0);
-  }
-}
-
-function create_response(response_data, response_info) {
-  response_info.ok = response_info.status >= 200 && response_info.status < 300;
-  response_info.statusText = status_messages[response_info.status] || "";
-  if (response_info.status === 204 || response_info.status === 205) {
-    response_data = null;
-  }
-
-  //construct base response object
-  let response_obj = new Response(response_data, response_info);
-  for (let key in response_info) {
-    if (key == "headers") continue;
-    Object.defineProperty(response_obj, key, {
-      writable: false,
-      value: response_info[key]
-    });
-  }
-
-  //create headers object
-  Object.defineProperty(response_obj, "headers", {
-    writable: false,
-    value: new Headers()
-  });
-  Object.defineProperty(response_obj, "raw_headers", {
-    writable: false,
-    value: response_info.headers
-  });
-  for (let [header_name, header_value] of response_info.headers) {
-    response_obj.headers.append(header_name, header_value);
-  }
-  
-  return response_obj;
-}
-
-async function create_options(params) {
-  let body = null;
-  let request_obj = new Request("/", params);
-  let array_buffer = await request_obj.arrayBuffer();
-  if (array_buffer.byteLength > 0) {
-    body = new Uint8Array(array_buffer);
-  }
-  
-  let headers = params.headers || {};
-  if (params.headers instanceof Headers) {
-    for(let [key, value] of headers) {
-      headers[key] = value;
-    }
-  }
-  params.headers = new HeadersDict(headers);
-
-  if (params.referrer) {
-    params.headers["Referer"] = params.referrer;
-  }
-  if (!params.headers["User-Agent"]) {
-    params.headers["User-Agent"] = navigator.userAgent;
-  }
-  if (body) {
-    params.headers["Content-Type"] = request_obj.headers.get("Content-Type");
-  }
-
-  return body;
 }
 
 //wrap perform_request in a promise
@@ -218,7 +105,7 @@ function perform_request_async(url, params, body) {
     let body_length = body ? body.length : 0;
     let params_json = JSON.stringify(params);
     
-    http_handle = create_handle(url, data_callback, finish_callback, headers_callback);
+    http_handle = create_request(url, data_callback, finish_callback, headers_callback);
     c_func(_http_set_options, [http_handle, params_json, body, body_length]);
     start_request(http_handle);
   });
@@ -263,6 +150,10 @@ function main() {
     let load_event = new Event("libcurl_load");
     document.dispatchEvent(load_event);
   }
+
+  main_session = new HTTPSession();
+  api.fetch = main_session.fetch.bind(main_session);
+
   api.onload();
 }
 
@@ -274,18 +165,19 @@ function load_wasm(url) {
 
 Module.onRuntimeInitialized = main;
 api = {
-  fetch: libcurl_fetch,
   set_websocket: set_websocket_url,
   load_wasm: load_wasm,
-  WebSocket: FakeWebSocket,
-  CurlWebSocket: CurlWebSocket,
-  TLSSocket: TLSSocket,
   get_cacert: get_cacert,
   get_error_string: get_error_str,
 
   wisp_connections: _wisp_connections,
   WispConnection: WispConnection,
   transport: "wisp",
+
+  WebSocket: WebSocket,
+  CurlWebSocket: CurlWebSocket,
+  TLSSocket: TLSSocket,
+  fetch: () => {throw "not ready"},
   
   get copyright() {return copyright_notice},
   get version() {return get_version()},

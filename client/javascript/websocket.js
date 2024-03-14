@@ -1,9 +1,9 @@
-class CurlWebSocket {
-  constructor(url, protocols=[], options={}) {
-    check_loaded(true);
+class CurlWebSocket extends CurlSession {
+  constructor(url, protocols=[], options={}) {    
     if (!url.startsWith("wss://") && !url.startsWith("ws://")) {
       throw new SyntaxError("invalid url");
     }
+    super();
     
     this.url = url;
     this.protocols = protocols;
@@ -15,9 +15,11 @@ class CurlWebSocket {
     this.onclose = () => {};
 
     this.connected = false;
-    this.event_loop = null;
+    this.recv_loop = null;
+    this.http_handle = null;
     this.recv_buffer = [];
 
+    this.set_connections(1, 0);
     this.connect();
   }
 
@@ -27,7 +29,7 @@ class CurlWebSocket {
     let finish_callback = (error) => {
       if (error === 0) {
         this.connected = true;
-        this.event_loop = setInterval(() => {
+        this.recv_loop = setInterval(() => {
           let data = this.recv();
           if (data !== null) this.onmessage(data);
         }, 0);
@@ -47,10 +49,10 @@ class CurlWebSocket {
       request_options._libcurl_verbose = 1;
     }
 
-    this.http_handle = create_handle(this.url, data_callback, finish_callback, headers_callback);
+    this.http_handle = this.create_request(this.url, data_callback, finish_callback, headers_callback);
     c_func(_http_set_options, [this.http_handle, JSON.stringify(request_options), null, 0]);
     _websocket_set_options(this.http_handle);
-    start_request(this.http_handle);
+    this.start_request(this.http_handle);
   }
 
   recv() {
@@ -104,10 +106,14 @@ class CurlWebSocket {
   }
 
   cleanup(error=0) {
-    if (this.http_handle) _cleanup_handle(this.http_handle);
+    if (this.http_handle) {
+      this.remove_handle(this.http_handle);
+      this.http_handle = null;
+      super.close();
+    }
     else return;
 
-    clearInterval(this.event_loop);
+    clearInterval(this.recv_loop);
     this.connected = false;
 
     if (error) {

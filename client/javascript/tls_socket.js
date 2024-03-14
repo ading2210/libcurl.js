@@ -1,8 +1,8 @@
 //currently broken
 
-class TLSSocket {
+class TLSSocket extends CurlSession {
   constructor(hostname, port, options={}) {
-    check_loaded(true);
+    super();
 
     this.hostname = hostname;
     this.port = port;
@@ -15,8 +15,9 @@ class TLSSocket {
     this.onclose = () => {};
 
     this.connected = false;
-    this.event_loop = null;
+    this.recv_loop = null;
 
+    this.set_connections(1, 0);
     this.connect();
   }
 
@@ -29,7 +30,7 @@ class TLSSocket {
     let finish_callback = (error) => {
       if (error === 0) {
         this.connected = true;
-        this.event_loop = setInterval(() => {
+        this.recv_loop = setInterval(() => {
           let data = this.recv();
           if (data != null) this.onmessage(data);
         }, 0);
@@ -40,9 +41,9 @@ class TLSSocket {
       }
     }
 
-    this.http_handle = create_handle(this.url, data_callback, finish_callback, headers_callback);
+    this.http_handle = this.create_request(this.url, data_callback, finish_callback, headers_callback);
     _tls_socket_set_options(this.http_handle, +this.options.verbose);
-    start_request(this.http_handle);
+    this.start_request(this.http_handle);
   }
 
   recv() {
@@ -80,10 +81,14 @@ class TLSSocket {
   }
 
   cleanup(error=false) {
-    if (this.http_handle) _cleanup_handle(this.http_handle);
+    if (this.http_handle) {
+      this.remove_request(this.http_handle);
+      this.http_handle = null;
+      super.close();
+    }
     else return;
     
-    clearInterval(this.event_loop);
+    clearInterval(this.recv_loop);
     this.connected = false;
 
     if (error) {

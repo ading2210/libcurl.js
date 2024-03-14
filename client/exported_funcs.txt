@@ -1,10 +1,13 @@
 init_curl
-start_request
-cleanup_handle
-create_handle
-tick_request
-active_requests
+session_create
+session_perform
+session_set_options
+session_add_request
+session_get_active
+session_remove_request
+session_cleanup
 
+create_request
 get_version
 get_cacert
 get_error_str

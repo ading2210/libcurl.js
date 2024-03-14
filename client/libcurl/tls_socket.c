@@ -31,5 +31,4 @@ void tls_socket_set_options(CURL* http_handle, int verbose) {
   curl_easy_setopt(http_handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
   curl_easy_setopt(http_handle, CURLOPT_SSL_ENABLE_ALPN, 0L);
   curl_easy_setopt(http_handle, CURLOPT_VERBOSE, (long) verbose);
-  request_info->prevent_cleanup = 1;
 }

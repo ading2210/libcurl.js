@@ -14,8 +14,6 @@
 void finish_request(CURLMsg *curl_msg);
 void forward_headers(struct RequestInfo *request_info);
 
-CURLM *multi_handle;
-int request_active = 0;
 struct curl_blob cacert_blob;
 
 size_t write_function(char *data, size_t size, size_t nmemb, struct RequestInfo *request_info) {
@@ -30,25 +28,7 @@ size_t write_function(char *data, size_t size, size_t nmemb, struct RequestInfo 
   return real_size;
 }
 
-int active_requests() {
-  return request_active;
-}
-
-void tick_request() {
-  CURLMcode mc;
-  struct CURLMsg *curl_msg;
-  request_active = 1;
-  
-  mc = curl_multi_perform(multi_handle, &request_active);
-
-  int msgq = 0;
-  curl_msg = curl_multi_info_read(multi_handle, &msgq);
-  if (curl_msg && curl_msg->msg == CURLMSG_DONE) {
-    finish_request(curl_msg);
-  }
-}
-
-CURL* create_handle(const char* url, DataCallback data_callback, EndCallback end_callback, HeadersCallback headers_callback) {
+CURL* create_request(const char* url, DataCallback data_callback, EndCallback end_callback, HeadersCallback headers_callback) {
   CURL *http_handle = curl_easy_init();  
 
   //create request metadata struct
@@ -57,7 +37,6 @@ CURL* create_handle(const char* url, DataCallback data_callback, EndCallback end
   request_info->curl_msg = NULL;
   request_info->headers_list = NULL;
   request_info->headers_received = 0;
-  request_info->prevent_cleanup = 0;
   request_info->end_callback = end_callback;
   request_info->data_callback = data_callback;
   request_info->headers_callback = headers_callback;
@@ -71,10 +50,6 @@ CURL* create_handle(const char* url, DataCallback data_callback, EndCallback end
   curl_easy_setopt(http_handle, CURLOPT_WRITEDATA, request_info);
   
   return http_handle;
-}
-
-void start_request(CURL* http_handle) {
-  curl_multi_add_handle(multi_handle, http_handle);
 }
 
 void forward_headers(struct RequestInfo *request_info) {
@@ -96,19 +71,6 @@ void finish_request(CURLMsg *curl_msg) {
     curl_slist_free_all(request_info->headers_list);
   }
   (*request_info->end_callback)(error);
-  if (request_info->prevent_cleanup) {
-    return;
-  }
-  curl_multi_remove_handle(multi_handle, http_handle);
-  curl_easy_cleanup(http_handle);
-  free(request_info);
-}
-
-void cleanup_handle(CURL* http_handle) {
-  struct RequestInfo *request_info = get_request_info(http_handle);
-  curl_multi_remove_handle(multi_handle, http_handle);
-  curl_easy_cleanup(http_handle);
-  free(request_info);
 }
 
 unsigned char* get_cacert() {
@@ -117,8 +79,6 @@ unsigned char* get_cacert() {
 
 void init_curl() {
   curl_global_init(CURL_GLOBAL_DEFAULT);
-  multi_handle = curl_multi_init();
-
   cacert_blob.data = _cacert_pem;
   cacert_blob.len = _cacert_pem_len;
   cacert_blob.flags = CURL_BLOB_NOCOPY;

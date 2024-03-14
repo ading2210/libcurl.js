@@ -27,7 +27,7 @@ class FTPSession {
       };
       let headers_callback = () => {this.headers_callback()};
 
-      http_handle = create_handle(url, data_callback, finish_callback, headers_callback);
+      http_handle = create_request(url, data_callback, finish_callback, headers_callback);
       _ftp_set_options(http_handle, url, 1);
       start_request(http_handle);
     });

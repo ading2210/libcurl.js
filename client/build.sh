@@ -82,16 +82,21 @@ WISP_VERSION=$(cat $WISP_CLIENT/package.json | jq -r '.version')
 sed -i "s/__wisp_version__/$WISP_VERSION/" $OUT_FILE
 
 
-#add extra libraries
-sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/copyright.js" $OUT_FILE
-sed -i "/__extra_libraries__/r $WISP_CLIENT/polyfill.js" $OUT_FILE
-sed -i "/__extra_libraries__/r $WISP_CLIENT/wisp.js" $OUT_FILE
-sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/messages.js" $OUT_FILE
+#js files are inserted in reverse order
 sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/tls_socket.js" $OUT_FILE
-sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/websocket.js" $OUT_FILE
 sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/ws_polyfill.js" $OUT_FILE
+sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/websocket.js" $OUT_FILE
+sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/http.js" $OUT_FILE
+sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/session.js" $OUT_FILE
+
+sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/copyright.js" $OUT_FILE
+sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/messages.js" $OUT_FILE
 sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/util.js" $OUT_FILE
 sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/logger.js" $OUT_FILE
+
+sed -i "/__extra_libraries__/r $WISP_CLIENT/polyfill.js" $OUT_FILE
+sed -i "/__extra_libraries__/r $WISP_CLIENT/wisp.js" $OUT_FILE
+
 
 #apply patches
 python3 tools/patch_js.py $FRAGMENTS_DIR $OUT_FILE

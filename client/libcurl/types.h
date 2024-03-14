@@ -6,7 +6,6 @@ typedef void(*HeadersCallback)();
 
 struct RequestInfo {
   CURL* http_handle;
-  int prevent_cleanup;
   int headers_received;
   struct CURLMsg *curl_msg;
   struct curl_slist* headers_list;
@@ -22,4 +21,9 @@ struct WSResult {
   int bytes_left;
   int is_text;
   char* buffer;
+};
+
+struct SessionInfo {
+  CURLM* multi_handle;
+  int request_active;
 };

@@ -1,5 +1,9 @@
 # Libcurl.js Changelog:
 
+## v0.6.0 (3/14/24):
+- Refactor JS and C code
+- Allow for multiple sessions with separate connection pools
+
 ## v0.5.3 (3/9/24):
 - Update Wisp client and server, which improves error handling
 - Expose the wisp-client-js version in the API

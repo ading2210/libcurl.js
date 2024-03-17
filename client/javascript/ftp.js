@@ -1,44 +1,55 @@
-//unfinished!
-
-class FTPSession {
+class FTPSession extends CurlSession {
   constructor(url, options={}) {
-    if (!url.startsWith("ftp://") || !url.startsWith("ftps://")) {
+    if (!url.startsWith("ftp://") && !url.startsWith("ftps://")) {
       throw "invalid url protocol";
     }
+    super();
 
     this.url = url;
-    this.cwd = new URL(url).pathname;
     this.options = options;
-    this.http_handle = null;
   }
 
-  do_request(url) {
+  send_cmd(cmd) {
     return new Promise((resolve, reject) => {
-      let http_handle;
-      let data_callback = (data) => {this.data_callback(data)};
-      let finish_callback = (error) => {
-        _cleanup_handle(http_handle);
-        if (error) {
-          reject();
-        }
-        else {
-          resolve();
-        }
-      };
-      let headers_callback = () => {this.headers_callback()};
+      let request_ptr;
+      let chunks = [];
 
-      http_handle = create_request(url, data_callback, finish_callback, headers_callback);
-      _ftp_set_options(http_handle, url, 1);
-      start_request(http_handle);
+      let data_callback = () => {};
+      let finish_callback = (error) => {
+        this.remove_request(request_ptr);
+        if (error) {
+          reject(`Sending FTP command failed with error ${error}: ${get_error_str(error)}`);
+        }
+      }
+      let headers_callback = (chunk) => {
+        chunks.push(chunk);
+        console.log(chunk);
+      }
+
+      request_ptr = this.create_request(this.url, data_callback, finish_callback, headers_callback);
+      c_func(_ftp_set_cmd, [request_ptr, cmd]);
     });
   }
 
-  async download(path) {
-    let url = new URL(path, this.url);
-    _ftp_set_options(this.http_handle, url, 0);
-  }
+  download(path) {
+    let url = new URL(path, this.url).href;
+    console.log(url);
 
-  cleanup() {
+    return new Promise((resolve, reject) => {
+      let request_ptr;
+      let finish_callback = (error) => {
+        this.remove_request(request_ptr);
+        if (error) {
+          reject(`FTP request failed with error ${error}: ${get_error_str(error)}`);
+        }
+      };
+      let headers_callback = (stream) => {
+        resolve(stream);
+      };
 
+      request_ptr = this.stream_response(url, headers_callback, finish_callback);
+      _ftp_set_options(request_ptr);
+      this.start_request(request_ptr);
+    });
   }
 }

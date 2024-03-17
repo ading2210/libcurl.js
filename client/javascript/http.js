@@ -1,72 +1,42 @@
 class HTTPSession extends CurlSession {
-  constructor() {
+  constructor(options) {
     super();
+    this.options = options;
     this.set_connections(50, 40);
   }
 
   request_async(url, params, body) {
     return new Promise((resolve, reject) => {
-      let stream_controller;
       let http_handle;
-      let response_obj;
-      let aborted = false;
   
-      //handle abort signals
-      if (params.signal instanceof AbortSignal) {
-        params.signal.addEventListener("abort", () => {
-          if (aborted) return;
-          aborted = true;
-          _cleanup_handle(http_handle);
-          if (!response_obj) {
-            reject(new DOMException("The operation was aborted."));
-          }
-          else {
-            stream_controller.error("The operation was aborted.");
-          }
-        });
-      }
-  
-      let stream = new ReadableStream({
-        start(controller) {
-          stream_controller = controller;
-        }
-      });
-      
-      let data_callback = (new_data) => {
-        try {
-          stream_controller.enqueue(new_data);  
-        }
-        catch (e) {
-          //the readable stream has been closed elsewhere, so cancel the request
-          if (e instanceof TypeError) {
-            _cleanup_handle(http_handle);
-          }
-          else {
-            throw e;
-          }
-        }
-      }
-      let headers_callback = () => {
+      let headers_callback = (stream) => {
         let response_json = c_func_str(_http_get_info, [http_handle]);
-        response_obj = this.constructor.create_response(stream, JSON.parse(response_json));
-        resolve(response_obj);
+        let response = this.constructor.create_response(stream, JSON.parse(response_json));
+        
+        if (params.redirect === "error" && response.status >= 300 && response.status < 400) {
+          finish_callback(-2);
+          return;
+        }
+        resolve(response);
       }
       let finish_callback = (error) => {
-        if (error != 0) {
+        if (error > 0) {
           error_msg(`Request "${url}" failed with error code ${error}: ${get_error_str(error)}`);
           reject(`Request failed with error code ${error}: ${get_error_str(error)}`);
         }
-        try {
-          stream_controller.close();
-        } //this will only fail if the stream is already errored or closed, which isn't a problem
-        catch {}
+        else if (error === -1) {
+          reject(new DOMException("The operation was aborted."));
+        }
+        else if (error === -2) {
+          reject("Request failed because redirects were disallowed.");
+        }
         this.remove_request(http_handle);
       }
   
       let body_length = body ? body.length : 0;
       let params_json = JSON.stringify(params);
       
-      http_handle = this.create_request(url, data_callback, finish_callback, headers_callback);
+      http_handle = this.stream_response(url, headers_callback, finish_callback, params.signal);
       c_func(_http_set_options, [http_handle, params_json, body, body_length]);
       this.start_request(http_handle);
     });

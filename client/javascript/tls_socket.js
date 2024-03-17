@@ -22,11 +22,8 @@ class TLSSocket extends CurlSession {
   }
 
   connect() {
-    let response_info;
     let data_callback = () => {};
-    let headers_callback = (info) => {
-      response_info = info;
-    }
+    let headers_callback = () => {};
     let finish_callback = (error) => {
       if (error === 0) {
         this.connected = true;

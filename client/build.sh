@@ -83,6 +83,7 @@ sed -i "s/__wisp_version__/$WISP_VERSION/" $OUT_FILE
 
 
 #js files are inserted in reverse order
+sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/ftp.js" $OUT_FILE
 sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/tls_socket.js" $OUT_FILE
 sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/ws_polyfill.js" $OUT_FILE
 sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/websocket.js" $OUT_FILE

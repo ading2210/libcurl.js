@@ -31,5 +31,6 @@ recv_from_socket
 send_to_socket
 
 ftp_set_options
+ftp_set_cmd
 
 free

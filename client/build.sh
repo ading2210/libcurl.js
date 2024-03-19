@@ -27,7 +27,7 @@ EXPORTED_FUNCS="${EXPORTED_FUNCS:1}"
 
 #compile options
 RUNTIME_METHODS="addFunction,removeFunction,allocate,ALLOC_NORMAL"
-COMPILER_OPTIONS="-o $MODULE_FILE -lcurl -lssl -lcrypto -lcjson -lz -lbrotlidec -lbrotlicommon -lnghttp2 -I $INCLUDE_DIR -L $LIB_DIR"
+COMPILER_OPTIONS="-o $MODULE_FILE -lcurl -lwolfssl -lcjson -lz -lbrotlidec -lbrotlicommon -lnghttp2 -I $INCLUDE_DIR -L $LIB_DIR"
 EMSCRIPTEN_OPTIONS="-lwebsocket.js -sENVIRONMENT=worker,web -sASSERTIONS=1 -sLLD_REPORT_UNDEFINED -sALLOW_TABLE_GROWTH -sALLOW_MEMORY_GROWTH -sEXPORTED_FUNCTIONS=$EXPORTED_FUNCS -sEXPORTED_RUNTIME_METHODS=$RUNTIME_METHODS"
 
 #clean output dir
@@ -50,7 +50,7 @@ if [[ "$*" == *"release"* ]]; then
   COMPILER_OPTIONS="-Oz -flto $COMPILER_OPTIONS"
   echo "note: building with release optimizations"
 else
-  COMPILER_OPTIONS="$COMPILER_OPTIONS --profiling"
+  COMPILER_OPTIONS="$COMPILER_OPTIONS --profiling -g"
 fi
 
 if [[ "$*" == *"single_file"* ]]; then

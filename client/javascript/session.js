@@ -79,7 +79,6 @@ class CurlSession {
     this.event_loop = setInterval(() => {
       let libcurl_active = _session_get_active(this.session_ptr);
       if (libcurl_active || this.active_requests) {
-        console.log("test");
         _session_perform(this.session_ptr);
       }
       else {
@@ -147,12 +146,12 @@ class CurlSession {
         headers_callback(stream);
       }
 
-      if (error != 0) {
-        try {
-          stream_controller.close();
-        }
-        catch {}
+      console.log(error);
+
+      try {
+        stream_controller.close();
       }
+      catch {}
       end_callback(error);
     }
 

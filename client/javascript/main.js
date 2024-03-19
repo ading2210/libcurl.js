@@ -102,7 +102,6 @@ api = {
   CurlWebSocket: CurlWebSocket,
   TLSSocket: TLSSocket,
   HTTPSession: HTTPSession,
-  FTPSession: FTPSession,
   fetch() {throw "not ready"},
   
   get copyright() {return copyright_notice},

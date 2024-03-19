@@ -13,7 +13,7 @@ BROTLI_PREFIX=$(realpath build/brotli-wasm)
 NGHTTP2_PREFIX=$(realpath build/nghttp2-wasm)
 
 if [ ! -d $WOLFSSL_PREFIX ]; then
-  tools/openssl.sh
+  tools/wolfssl.sh
 fi
 if [ ! -d $CJSON_PREFIX ]; then
   tools/cjson.sh

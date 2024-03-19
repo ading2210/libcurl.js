@@ -8,6 +8,7 @@ This is an experimental port of [libcurl](https://curl.se/libcurl/) to WebAssemb
 - [Javascript API](#javascript-api)
   * [Importing the Library](#importing-the-library)
   * [Making HTTP Requests](#making-http-requests)
+  * [Creating New HTTP Sessions](#creating-new-http-sessions)
   * [Creating WebSocket Connections](#creating-websocket-connections)
   * [Using TLS Sockets](#using-tls-sockets)
   * [Changing the Network Transport](#changing-the-network-transport)
@@ -94,8 +95,9 @@ console.log(await r.text());
 
 Most of the standard Fetch API's features are supported, with the exception of:
 - CORS enforcement
-- Sending credentials/cookies automatically
 - Caching
+
+Sending cookies is supported, but they will not be automatically sent unless you create a new HTTP session, which is covered in the next section.
 
 The response may contain multiple HTTP headers with the same name, which the `Headers` object isn't able to properly represent. If this matters to you, use `response.raw_headers`, which is an array of key value pairs, instead of `response.headers`. There is support for streaming the response body using a `ReadableStream`, as well as canceling requests using an `AbortSignal`. All requests made using this method share the same connection pool, which has a limit of 50 active TCP connections.
 
@@ -105,7 +107,13 @@ To create new sessions for HTTP requests, use the `libcurl.HTTPSession` class. T
 
 The valid HTTP session settings are:
 - `enable_cookies` - A boolean which indicate whether or not cookies should be persisted within the session.
-- `cookie_jar` - A blob containing the data in the cookie jar file. This should have been exported from a previous session. 
+- `cookie_jar` - A string containing the data in the cookie jar file. This should have been exported from a previous session. For more information on the format for this file, see the [curl documentation](https://curl.se/docs/http-cookies.html).
+
+Each HTTP session has the following methods available:
+- `fetch` - Identical to the `libcurl.fetch` function but only creates connections in this session.
+- `set_connections` - Set the connection limits. This takes two arguments, the first being the limit for the connection cache, and the second being the max number of active connections.
+- `export_cookies` - Export any cookies which were recorded in the session. This will return an empty string if cookies are disabled or no cookies have been set yet. 
+- `close` - Close all connections and clean up the session. You must call this after you are done using the session, otherwise it will leak memory. 
 
 ### Creating WebSocket Connections:
 To use WebSockets, create a `libcurl.CurlWebSocket` object, which takes the following arguments:
@@ -123,7 +131,9 @@ The following callbacks are available:
 - `CurlWebSocket.onclose` - Called when the websocket is cleanly closed with no error.
 - `CurlWebSocket.onerror` - Called when the websocket encounters an unexpected error. The [error code](https://curl.se/libcurl/c/libcurl-errors.html) is passed to the first argument of the function.
 
-The `CurlWebSocket.send` function can be used to send data to the websocket. The only argument is the data that is to be sent, which must be either a string or a `Uint8Array`.
+The `CurlWebSocket.send` function can be used to send data to the websocket. The only argument is the data that is to be sent, which must be either a string or a `Uint8Array`. 
+
+You can call `CurlWebSocket.close` to close and clean up the websocket.
 
 ```js
 let ws = new libcurl.CurlWebSocket("wss://echo.websocket.org", [], {verbose: 1});
@@ -160,6 +170,8 @@ The valid TLS socket options are:
 The callbacks work similarly to the `libcurl.CurlWebSocket` object, with the main difference being that the `onmessage` callback always returns a `Uint8Array`.
 
 The `TLSSocket.send` function can be used to send data to the socket. The only argument is the data that is to be sent, which must be a `Uint8Array`. 
+
+You can use the `TLSSocket.close` function to close the socket.
 
 ```js
 let socket = new libcurl.TLSSocket("ading.dev", 443, {verbose: 1});

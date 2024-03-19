@@ -1,10 +1,12 @@
 # Libcurl.js Changelog:
 
-## v0.6.0 (3/14/24):
+## v0.6.0 (3/19/24):
 - Refactor JS and C code
 - Allow for multiple sessions with separate connection pools
+- Switch to wolfSSL instead of OpenSSL for significantly smaller binaries
+- Add support for sending cookies automatically
 
-## v0.5.3 (3/9/24):
+## v0.5.3 (3/11/24):
 - Update Wisp client and server, which improves error handling
 - Expose the wisp-client-js version in the API
 

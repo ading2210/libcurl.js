@@ -1,8 +1,41 @@
 class HTTPSession extends CurlSession {
-  constructor(options) {
+  constructor(options={}) {
     super();
     this.options = options;
+
     this.set_connections(50, 40);
+    this.import_cookies();
+  }
+
+  import_cookies() {
+    if (this.options.enable_cookies) {
+      this.cookie_filename = `/cookies_${Math.random()}.txt`;
+      if (this.options.cookie_jar) {
+        FS.writeFile(this.cookie_filename, this.options.cookie_jar);
+      }
+    }
+  }
+
+  export_cookies() {
+    if (!this.cookie_filename) return "";
+
+    try {
+      return FS.readFile(this.cookie_filename, {encoding: "utf8"});
+    }
+    catch (e) {
+      if (e.errno === 44) return "";
+      throw e;
+    }
+  }
+
+  close() {
+    if (this.cookie_filename) {
+      try {
+        FS.unlink(this.cookie_filename);
+      }
+      catch (e) {}
+    }
+    super.close();
   }
 
   request_async(url, params, body) {
@@ -38,6 +71,10 @@ class HTTPSession extends CurlSession {
       
       http_handle = this.stream_response(url, headers_callback, finish_callback, params.signal);
       c_func(_http_set_options, [http_handle, params_json, body, body_length]);
+      if (this.cookie_filename && params.credentials !== "omit") {
+        c_func(_http_set_cookie_jar, [http_handle, this.cookie_filename]);
+      }
+
       this.start_request(http_handle);
     });
   }

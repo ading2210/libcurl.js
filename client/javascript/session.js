@@ -146,8 +146,6 @@ class CurlSession {
         headers_callback(stream);
       }
 
-      console.log(error);
-
       try {
         stream_controller.close();
       }

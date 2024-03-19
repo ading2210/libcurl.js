@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "cjson/cJSON.h"
 #include "curl/curl.h"
@@ -63,6 +64,11 @@ void http_set_options(CURL* http_handle, const char* json_params, const char* bo
   }
 
   request_info->headers_list = headers_list;
+}
+
+void http_set_cookie_jar(CURL* http_handle, const char* filename) {
+  curl_easy_setopt(http_handle, CURLOPT_COOKIEFILE, filename);
+  curl_easy_setopt(http_handle, CURLOPT_COOKIEJAR, filename);
 }
 
 char* http_get_info(CURL* http_handle) {

@@ -14,6 +14,7 @@ get_error_str
 
 http_set_options
 http_get_info
+http_set_cookie_jar
 
 websocket_set_options
 recv_from_websocket
@@ -29,8 +30,5 @@ get_result_is_text
 tls_socket_set_options
 recv_from_socket
 send_to_socket
-
-ftp_set_options
-ftp_set_cmd
 
 free

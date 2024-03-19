@@ -19,7 +19,7 @@ cd curl
 
 autoreconf -fi
 emconfigure ./configure --host i686-linux --disable-shared --disable-threaded-resolver --without-libpsl --disable-netrc --disable-ipv6 --disable-tftp --disable-ntlm-wb --enable-websockets --with-wolfssl=$WOLFSSL_PREFIX --with-zlib=$ZLIB_PREFIX --with-brotli=$BROTLI_PREFIX --with-nghttp2=$NGHTTP2_PREFIX
-emmake make -j$CORE_COUNT CFLAGS="-Oz -pthread" LIBS="-lbrotlicommon"
+emmake make -j$CORE_COUNT CFLAGS="-Oz" LIBS="-lbrotlicommon"
 
 rm -rf $PREFIX
 mkdir -p $PREFIX/include

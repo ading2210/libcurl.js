@@ -7,13 +7,14 @@
 #include "curl/easy.h"
 #include "curl/header.h"
 #include "cjson/cJSON.h"
-#include "cacert.h"
 #include "curl/multi.h"
 
+#include "cacert.h"
 #include "util.h"
 #include "types.h"
 
 void finish_request(CURLMsg *curl_msg);
+void forward_headers(struct RequestInfo *request_info);
 
 #define ERROR_REDIRECT_DISALLOWED -1
 
@@ -21,11 +22,15 @@ CURLM *multi_handle;
 int request_active = 0;
 struct curl_blob cacert_blob;
 
-size_t write_function(void *data, size_t size, size_t nmemb, DataCallback data_callback) {
+size_t write_function(void *data, size_t size, size_t nmemb, struct RequestInfo *request_info) {
+  if (!request_info->headers_received) {
+    forward_headers(request_info);
+  }
+
   size_t real_size = size * nmemb;
   char* chunk = malloc(real_size);
   memcpy(chunk, data, real_size);
-  data_callback(chunk, real_size);
+  (*request_info->data_callback)(chunk, real_size);
   free(chunk);
   return real_size;
 }
@@ -48,17 +53,13 @@ void tick_request() {
   }
 }
 
-CURL* start_request(const char* url, const char* json_params, DataCallback data_callback, EndCallback end_callback, const char* body, int body_length) {
+CURL* start_request(const char* url, const char* json_params, DataCallback data_callback, EndCallback end_callback, HeadersCallback headers_callback, const char* body, int body_length) {
   CURL *http_handle = curl_easy_init();  
   int abort_on_redirect = 0;
   int prevent_cleanup = 0;
  
   curl_easy_setopt(http_handle, CURLOPT_URL, url);
   curl_easy_setopt(http_handle, CURLOPT_CAINFO_BLOB , cacert_blob);
-
-  //callbacks to pass the response data back to js
-  curl_easy_setopt(http_handle, CURLOPT_WRITEFUNCTION, &write_function);
-  curl_easy_setopt(http_handle, CURLOPT_WRITEDATA, data_callback);
 
   //some default options
   curl_easy_setopt(http_handle, CURLOPT_FOLLOWLOCATION, 1);
@@ -81,6 +82,13 @@ CURL* start_request(const char* url, const char* json_params, DataCallback data_
 
     if (strcmp(key, "_libcurl_verbose") == 0) {
       curl_easy_setopt(http_handle, CURLOPT_VERBOSE, 1L);
+    }
+
+    if (strcmp(key, "_connect_only") == 0) {
+      curl_easy_setopt(http_handle, CURLOPT_CONNECT_ONLY, 1L);
+      curl_easy_setopt(http_handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+      curl_easy_setopt(http_handle, CURLOPT_SSL_ENABLE_ALPN, 0L);
+      prevent_cleanup = 1;
     }
 
     if (strcmp(key, "method") == 0 && cJSON_IsString(item)) {
@@ -122,36 +130,39 @@ CURL* start_request(const char* url, const char* json_params, DataCallback data_
     curl_easy_setopt(http_handle, CURLOPT_POSTFIELDSIZE, body_length);
   }
 
+  //create request metadata struct
   struct RequestInfo *request_info = malloc(sizeof(struct RequestInfo));
+  request_info->http_handle = http_handle;
   request_info->abort_on_redirect = abort_on_redirect;
   request_info->curl_msg = NULL;
   request_info->headers_list = headers_list;
-  request_info->end_callback = end_callback;
   request_info->prevent_cleanup = prevent_cleanup;
+  request_info->headers_received = 0;
+  request_info->end_callback = end_callback;
+  request_info->data_callback = data_callback;
+  request_info->headers_callback = headers_callback;
+
+  //callbacks to pass the response data back to js
+  curl_easy_setopt(http_handle, CURLOPT_WRITEFUNCTION, &write_function);
+  curl_easy_setopt(http_handle, CURLOPT_WRITEDATA, data_callback);
+
   curl_easy_setopt(http_handle, CURLOPT_PRIVATE, request_info);
+  curl_easy_setopt(http_handle, CURLOPT_WRITEDATA, request_info);
   
   curl_multi_add_handle(multi_handle, http_handle);
 
   return http_handle;
 }
 
-void finish_request(CURLMsg *curl_msg) {
-  //get initial request info from the http handle
-  struct RequestInfo *request_info;
-  CURL *http_handle = curl_msg->easy_handle;
-  curl_easy_getinfo(http_handle, CURLINFO_PRIVATE, &request_info);
-
-  int error = (int) curl_msg->data.result;
-  long response_code;
-  curl_easy_getinfo(http_handle, CURLINFO_RESPONSE_CODE, &response_code);
-
-  if (request_info->abort_on_redirect && response_code / 100 == 3) {
-    error = ERROR_REDIRECT_DISALLOWED;
-  }
+void forward_headers(struct RequestInfo *request_info) {
+  request_info->headers_received = 1;
+  CURL *http_handle = request_info->http_handle;
 
   //create new json object with response info
   cJSON* response_json = cJSON_CreateObject();
 
+  long response_code;
+  curl_easy_getinfo(http_handle, CURLINFO_RESPONSE_CODE, &response_code);
   cJSON* status_item = cJSON_CreateNumber(response_code);
   cJSON_AddItemToObject(response_json, "status", status_item);
 
@@ -160,12 +171,16 @@ void finish_request(CURLMsg *curl_msg) {
   cJSON* url_item = cJSON_CreateString(response_url);
   cJSON_AddItemToObject(response_json, "url", url_item);
 
-  cJSON* headers_item = cJSON_CreateObject();
+  cJSON* headers_item = cJSON_CreateArray();
   struct curl_header *prev_header = NULL;
   struct curl_header *header = NULL;
   while ((header = curl_easy_nextheader(http_handle, CURLH_HEADER, -1, prev_header))) {
-    cJSON* header_entry = cJSON_CreateString(header->value);
-    cJSON_AddItemToObject(headers_item, header->name, header_entry);
+    cJSON* header_key_entry = cJSON_CreateString(header->name);
+    cJSON* header_value_entry = cJSON_CreateString(header->value);
+    cJSON* header_pair_item = cJSON_CreateArray();
+    cJSON_AddItemToArray(header_pair_item, header_key_entry);
+    cJSON_AddItemToArray(header_pair_item, header_value_entry);
+    cJSON_AddItemToArray(headers_item, header_pair_item);
     prev_header = header;
   }
   cJSON_AddItemToObject(response_json, "headers", headers_item);
@@ -177,16 +192,40 @@ void finish_request(CURLMsg *curl_msg) {
 
   char* response_json_str = cJSON_Print(response_json);
   cJSON_Delete(response_json);
-  
+
+  (*request_info->headers_callback)(response_json_str);
+}
+
+void finish_request(CURLMsg *curl_msg) {
+  //get initial request info from the http handle
+  struct RequestInfo *request_info;
+  CURL *http_handle = curl_msg->easy_handle;
+  curl_easy_getinfo(http_handle, CURLINFO_PRIVATE, &request_info);
+  if (!request_info->headers_received) {
+    forward_headers(request_info);
+  }
+
+  int error = (int) curl_msg->data.result;
+  long response_code;
+  curl_easy_getinfo(http_handle, CURLINFO_RESPONSE_CODE, &response_code);
+
+  if (request_info->abort_on_redirect && response_code / 100 == 3) {
+    error = ERROR_REDIRECT_DISALLOWED;
+  }
+
   //clean up curl
   curl_slist_free_all(request_info->headers_list);
-  (*request_info->end_callback)(error, response_json_str);
+  (*request_info->end_callback)(error);
   if (request_info->prevent_cleanup) {
     return;
   }
   curl_multi_remove_handle(multi_handle, http_handle);
   curl_easy_cleanup(http_handle);
   free(request_info);
+}
+
+unsigned char* get_cacert() {
+  return _cacert_pem;
 }
 
 void init_curl() {

@@ -7,6 +7,7 @@
 cp package.json out
 cp ../README.md out
 cp ../LICENSE out
+cp ../CHANGELOG.md out
 
 cd out
 npm publish

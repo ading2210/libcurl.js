@@ -37,7 +37,7 @@ void close_websocket(CURL* http_handle) {
 }
 
 //clean up the http handle associated with the websocket, since the main loop can't do this automatically
-void cleanup_websocket(CURL* http_handle) {
+void cleanup_handle(CURL* http_handle) {
   struct RequestInfo *request_info;
   curl_easy_getinfo(http_handle, CURLINFO_PRIVATE, &request_info);
 

@@ -30,7 +30,9 @@ var event_loop = null;
 var active_requests = 0;
 var wasm_ready = false;
 var version_dict = null;
+var api = null;
 const libcurl_version = "__library_version__";
+const wisp_version = "__wisp_version__";
 
 function check_loaded(check_websocket) {
   if (!wasm_ready) {
@@ -41,47 +43,12 @@ function check_loaded(check_websocket) {
   }
 }
 
-//a case insensitive dictionary for request headers
-class HeadersDict {
-  constructor(obj) {
-    for (let key in obj) {
-      this[key] = obj[key];
-    }
-    return new Proxy(this, this);
-  }
-  get(target, prop) {
-    let keys = Object.keys(this);
-    for (let key of keys) {
-      if (key.toLowerCase() === prop.toLowerCase()) {
-        return this[key];
-      }
-    }
-  }
-  set(target, prop, value) {
-    let keys = Object.keys(this);
-    for (let key of keys) {
-      if (key.toLowerCase() === prop.toLowerCase()) {
-        this[key] = value;
-      }
-    }
-    this[prop] = value;
-    return true;
-  }
-}
-
-function allocate_str(str) {
-  return allocate(intArrayFromString(str), ALLOC_NORMAL);
-}
-
-function allocate_array(array) {
-  return allocate(array, ALLOC_NORMAL);
-}
-
 //low level interface with c code
-function perform_request(url, params, js_data_callback, js_end_callback, body=null) {
+function perform_request(url, params, js_data_callback, js_end_callback, js_headers_callback, body=null) {
   let params_str = JSON.stringify(params);
   let end_callback_ptr;
   let data_callback_ptr;
+  let headers_callback_ptr;
   let url_ptr = allocate_str(url);
   let params_ptr = allocate_str(params_str);
 
@@ -92,30 +59,40 @@ function perform_request(url, params, js_data_callback, js_end_callback, body=nu
     body_length = body.length;
   }
 
-  let end_callback = (error, response_json_ptr) => {
-    let response_json = UTF8ToString(response_json_ptr);
-    let response_info = JSON.parse(response_json);
-
+  function end_callback(error) {
     Module.removeFunction(end_callback_ptr);
     Module.removeFunction(data_callback_ptr);
-    if (body_ptr) _free(body_ptr);
-    _free(url_ptr);
-    _free(response_json_ptr);
+    Module.removeFunction(headers_callback_ptr);
     
-    if (error != 0) console.error("request failed with error code " + error);
     active_requests --;
-    js_end_callback(error, response_info);
+    js_end_callback(error);
   }
 
-  let data_callback = (chunk_ptr, chunk_size) => {
+  function data_callback(chunk_ptr, chunk_size) {
     let data = Module.HEAPU8.subarray(chunk_ptr, chunk_ptr + chunk_size);
     let chunk = new Uint8Array(data);
     js_data_callback(chunk);
   }
 
-  end_callback_ptr = Module.addFunction(end_callback, "vii");
+  function headers_callback(response_json_ptr) {
+    let response_json = UTF8ToString(response_json_ptr);
+    let response_info = JSON.parse(response_json);
+    
+    if (body_ptr) _free(body_ptr);
+    _free(url_ptr);
+    _free(response_json_ptr);
+
+    //if the response status is 0, an error occurred,
+    //but we don't know what it is yet
+    if (response_info.status !== 0) {
+      js_headers_callback(response_info);
+    }    
+  }
+
+  end_callback_ptr = Module.addFunction(end_callback, "vi");
+  headers_callback_ptr = Module.addFunction(headers_callback, "vi");
   data_callback_ptr = Module.addFunction(data_callback, "vii");
-  let http_handle = _start_request(url_ptr, params_ptr, data_callback_ptr, end_callback_ptr, body_ptr, body_length);
+  let http_handle = _start_request(url_ptr, params_ptr, data_callback_ptr, end_callback_ptr, headers_callback_ptr, body_ptr, body_length);
   _free(params_ptr);
   
   active_requests ++;
@@ -133,17 +110,6 @@ function perform_request(url, params, js_data_callback, js_end_callback, body=nu
   }
 
   return http_handle;
-}
-
-function merge_arrays(arrays) {
-  let total_len = arrays.reduce((acc, val) => acc + val.length, 0);
-  let new_array = new Uint8Array(total_len);
-  let offset = 0;
-  for (let array of arrays) {
-    new_array.set(array, offset);
-    offset += array.length;
-  }
-  return new_array;
 }
 
 function create_response(response_data, response_info) {
@@ -168,70 +134,41 @@ function create_response(response_data, response_info) {
     writable: false,
     value: new Headers()
   });
-  for (let header_name in response_info.headers) {
-    let header_value = response_info.headers[header_name];
+  Object.defineProperty(response_obj, "raw_headers", {
+    writable: false,
+    value: response_info.headers
+  });
+  for (let [header_name, header_value] of response_info.headers) {
     response_obj.headers.append(header_name, header_value);
   }
   
   return response_obj;
 }
 
-async function parse_body(data) {
-  let data_array = null;
-  if (typeof data === "string") {
-    data_array = new TextEncoder().encode(data);
-  }
-
-  else if (data instanceof Blob) {
-    let array_buffer = await data.arrayBuffer();
-    data_array = new Uint8Array(array_buffer);
-  }
-
-  //any typedarray
-  else if (data instanceof ArrayBuffer) {
-    //dataview objects
-    if (ArrayBuffer.isView(data) && data instanceof DataView) {
-      data_array = new Uint8Array(data.buffer);
-    }
-    //regular typed arrays
-    else if (ArrayBuffer.isView(data)) {
-      data_array = Uint8Array.from(data);
-    }
-    //regular arraybuffers
-    else {
-      data_array = new Uint8Array(data);
-    }
-  }
-
-  else if (data instanceof ReadableStream) {
-    let chunks = [];
-    for await (let chunk of data) {
-      chunks.push(chunk);
-    }
-    data_array = merge_arrays(chunks);
-  }
-
-  else {
-    throw "invalid data type to be sent";
-  }
-  return data_array;
-}
-
 async function create_options(params) {
   let body = null;
-  if (params.body) {
-    body = await parse_body(params.body);
-    params.body = true;
+  let request_obj = new Request("/", params);
+  let array_buffer = await request_obj.arrayBuffer();
+  if (array_buffer.byteLength > 0) {
+    body = new Uint8Array(array_buffer);
   }
+  
+  let headers = params.headers || {};
+  if (params.headers instanceof Headers) {
+    for(let [key, value] of headers) {
+      headers[key] = value;
+    }
+  }
+  params.headers = new HeadersDict(headers);
 
-  if (!params.headers) params.headers = {};
-  params.headers = new HeadersDict(params.headers);
-
-  if (params.referer) {
-    params.headers["Referer"] = params.referer;
+  if (params.referrer) {
+    params.headers["Referer"] = params.referrer;
   }
   if (!params.headers["User-Agent"]) {
     params.headers["User-Agent"] = navigator.userAgent;
+  }
+  if (body) {
+    params.headers["Content-Type"] = request_obj.headers.get("Content-Type");
   }
 
   return body;
@@ -240,22 +177,63 @@ async function create_options(params) {
 //wrap perform_request in a promise
 function perform_request_async(url, params, body) {
   return new Promise((resolve, reject) => {
-    let chunks = [];
-    let data_callback = (new_data) => {
-      chunks.push(new_data);
-    };
-    
-    let finish_callback = (error, response_info) => {
-      if (error != 0) {
-        reject("libcurl.js encountered an error: " + error);
-        return;
+    let stream_controller;
+    let http_handle;
+    let response_obj;
+    let aborted = false;
+
+    //handle abort signals
+    if (params.signal instanceof AbortSignal) {
+      params.signal.addEventListener("abort", () => {
+        if (aborted) return;
+        aborted = true;
+        _cleanup_handle(http_handle);
+        if (!response_obj) {
+          reject(new DOMException("The operation was aborted."));
+        }
+        else {
+          stream_controller.error("The operation was aborted.");
+        }
+      });
+    }
+
+    let stream = new ReadableStream({
+      start(controller) {
+        stream_controller = controller;
       }
-      let response_data = merge_arrays(chunks);
-      chunks = null;
-      let response_obj = create_response(response_data, response_info);
+    });
+    
+    function data_callback(new_data) {
+      try {
+        stream_controller.enqueue(new_data);  
+      }
+      catch (e) {
+        //the readable stream has been closed elsewhere, so cancel the request
+        if (e instanceof TypeError) {
+          _cleanup_handle(http_handle);
+        }
+        else {
+          throw e;
+        }
+      }
+    }
+    function headers_callback(response_info) {
+      response_obj = create_response(stream, response_info);
       resolve(response_obj);
     }
-    perform_request(url, params, data_callback, finish_callback, body);
+    function finish_callback(error) {
+      if (error != 0) {
+        error_msg(`Request "${url}" failed with error code ${error}: ${get_error_str(error)}`);
+        reject(`Request failed with error code ${error}: ${get_error_str(error)}`);
+        return;
+      }
+      try {
+        stream_controller.close();
+      } //this will only fail if the stream is already errored or closed, which isn't a problem
+      catch {}
+    }
+    
+    http_handle = perform_request(url, params, data_callback, finish_callback, headers_callback, body);
   });
 }
 
@@ -267,12 +245,9 @@ async function libcurl_fetch(url, params={}) {
 
 function set_websocket_url(url) {
   websocket_url = url;
-  if (!Module.websocket) {
-    document.addEventListener("libcurl_load", () => {
-      set_websocket_url(url);
-    });
+  if (Module.websocket) {
+    Module.websocket.url = url;
   }
-  else Module.websocket.url = url;
 }
 
 function get_version() {
@@ -284,7 +259,12 @@ function get_version() {
   _free(version_ptr);
   version_dict = JSON.parse(version_str);
   version_dict.lib = libcurl_version;
+  version_dict.wisp = wisp_version;
   return version_dict;
+}
+
+function get_cacert() {
+  return UTF8ToString(_get_cacert());
 }
 
 function main() {
@@ -292,8 +272,11 @@ function main() {
   _init_curl();
   set_websocket_url(websocket_url);
 
-  let load_event = new Event("libcurl_load");
-  document.dispatchEvent(load_event);
+  if (ENVIRONMENT_IS_WEB) {
+    let load_event = new Event("libcurl_load");
+    document.dispatchEvent(load_event);
+  }
+  api.onload();
 }
 
 function load_wasm(url) {
@@ -303,21 +286,35 @@ function load_wasm(url) {
 }
 
 Module.onRuntimeInitialized = main;
-return {
+api = {
   fetch: libcurl_fetch,
   set_websocket: set_websocket_url,
   load_wasm: load_wasm,
-  wisp: _wisp_connections,
-  WebSocket: CurlWebSocket,
+  WebSocket: FakeWebSocket,
+  CurlWebSocket: CurlWebSocket,
+  TLSSocket: TLSSocket,
+  get_cacert: get_cacert,
+  get_error_string: get_error_str,
+
+  wisp_connections: _wisp_connections,
+  WispConnection: WispConnection,
+  transport: "wisp",
   
   get copyright() {return copyright_notice},
   get version() {return get_version()},
   get ready() {return wasm_ready},
+  get websocket_url() {return websocket_url},
 
   get stdout() {return out},
   set stdout(callback) {out = callback},
   get stderr() {return err},
-  set stderr(callback) {err = callback}
-}
+  set stderr(callback) {err = callback},
+  get logger() {return logger},
+  set logger(func) {logger = func},
+
+  onload() {}
+};
+
+return api;
 
 })()

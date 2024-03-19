@@ -1,4 +1,5 @@
 #include "curl/curl.h"
+#include "minicoro.h"
 
 typedef void(*DataCallback)(char* chunk_ptr, int chunk_size);
 typedef void(*EndCallback)(int error);
@@ -24,4 +25,7 @@ struct WSResult {
 struct SessionInfo {
   CURLM* multi_handle;
   int request_active;
+  int need_fiber;
+  int fiber_running;
+  mco_coro* fiber;
 };

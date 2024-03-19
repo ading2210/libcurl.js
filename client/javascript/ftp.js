@@ -3,7 +3,7 @@ class FTPSession extends CurlSession {
     if (!url.startsWith("ftp://") && !url.startsWith("ftps://")) {
       throw "invalid url protocol";
     }
-    super();
+    super(1);
 
     this.url = url;
     this.options = options;

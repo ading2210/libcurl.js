@@ -1,9 +1,8 @@
 class CurlSession {
-  constructor(options={}) {
+  constructor(need_fiber=0) {
     check_loaded(true);
 
-    this.options = options;
-    this.session_ptr = _session_create();
+    this.session_ptr = _session_create(need_fiber);
     this.active_requests = 0;
     this.event_loop = null;
     this.requests_list = [];

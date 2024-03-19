@@ -104,8 +104,8 @@ To create new sessions for HTTP requests, use the `libcurl.HTTPSession` class. T
 - `options` - An optional object with various settings.
 
 The valid HTTP session settings are:
-- `enable_cookies` - A boolean which indicate whether or not cookies should be persisted within the session.
-- `cookie_jar` - A blob containing the data in the cookie jar file. This should have been exported from a previous session. 
+- `enable_cookies` - A boolean which indicate whether or not cookies should be persisted within the session. NOT IMPLEMENTED YET
+- `cookie_jar` - A blob containing the data in the cookie jar file. This should have been exported from a previous session. NOT IMPLEMENTED YET
 
 ### Creating WebSocket Connections:
 To use WebSockets, create a `libcurl.CurlWebSocket` object, which takes the following arguments:

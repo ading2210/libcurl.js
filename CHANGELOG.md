@@ -5,6 +5,7 @@
 - Allow for multiple sessions with separate connection pools
 - Switch to wolfSSL instead of OpenSSL for significantly smaller binaries
 - Add support for sending cookies automatically
+- Add NPM export for bundled version
 
 ## v0.5.3 (3/11/24):
 - Update Wisp client and server, which improves error handling

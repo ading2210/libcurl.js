@@ -46,6 +46,9 @@ function set_websocket_url(url) {
   if (Module.websocket) {
     Module.websocket.url = url;
   }
+  if (!main_session && wasm_ready) {
+    setup_main_session();
+  }
 }
 
 function get_version() {
@@ -65,18 +68,23 @@ function get_cacert() {
   return UTF8ToString(_get_cacert());
 }
 
+function setup_main_session() {
+  main_session = new HTTPSession();
+  api.fetch = main_session.fetch.bind(main_session);
+}
+
 function main() {
   wasm_ready = true;
   _init_curl();
-  set_websocket_url(websocket_url);
 
   if (ENVIRONMENT_IS_WEB) {
     let load_event = new Event("libcurl_load");
     document.dispatchEvent(load_event);
   }
 
-  main_session = new HTTPSession();
-  api.fetch = main_session.fetch.bind(main_session);
+  if (!main_session && websocket_url) {
+    setup_main_session();
+  }
 
   api.onload();
 }

@@ -1,6 +1,6 @@
 # Libcurl.js Changelog:
 
-## v0.6.0 (3/19/24):
+## v0.6.0 (3/20/24):
 - Refactor JS and C code
 - Allow for multiple sessions with separate connection pools
 - Switch to wolfSSL instead of OpenSSL for significantly smaller binaries

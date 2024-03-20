@@ -36,6 +36,9 @@ This is an experimental port of [libcurl](https://curl.se/libcurl/) to WebAssemb
 - Custom network transport support
 - Works inside web workers without needing special permissions or headers
 - Works in all major browsers (Chromium >= 64, Firefox >= 65, Safari >= 14)
+- Has the ability to create multiple independent sessions
+- Small footprint size (800kb after compression) and low runtime memory usage
+- Support for running inside a web worker
 
 ## Building:
 You can build this project by running the following commands:
@@ -77,14 +80,18 @@ document.addEventListener("libcurl_load", ()=>{
 });
 ```
 
-You may also use the, the `libcurl.onload` callback, which can be useful for running libcurl.js inside a web worker.
+You may also use the, the `libcurl.onload` callback, which can be useful for running libcurl.js inside a web worker. 
 ```js
 libcurl.onload = () => {
   console.log("libcurl.js ready!");
 }
 ```
 
-Once loaded, there will be a `window.libcurl` object which includes all the API functions. The `libcurl.ready` property can also be used to know if the WASM has loaded.
+Once loaded, there will be a `window.libcurl` object which includes all the API functions. The `libcurl.ready` property can also be used to know if the WASM has loaded. 
+
+There are also ES6 modules available if you are using a bundler. The `libcurl.mjs` and `libcurl_full.mjs` files provide this functionality, with the former being set as the entry point for the NPM package.
+
+Examples of running libcurl.js on the main thread and in a web worker are available at `client/index.html` and `client/worker.html` respectively. 
 
 ### Making HTTP Requests:
 To perform HTTP requests, use `libcurl.fetch`, which takes the same arguments as the browser's regular `fetch` function. Like the standard Fetch API, `libcurl.fetch` will also return a `Response` object.

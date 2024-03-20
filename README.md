@@ -39,6 +39,7 @@ This is an experimental port of [libcurl](https://curl.se/libcurl/) to WebAssemb
 - Has the ability to create multiple independent sessions
 - Small footprint size (800kb after compression) and low runtime memory usage
 - Support for running inside a web worker
+- Support for Brotli and gzip compressed responses
 
 ## Building:
 You can build this project by running the following commands:
@@ -80,7 +81,7 @@ document.addEventListener("libcurl_load", ()=>{
 });
 ```
 
-You may also use the, the `libcurl.onload` callback, which can be useful for running libcurl.js inside a web worker. 
+You may also use the `libcurl.onload` callback, which can be useful for running libcurl.js inside a web worker. 
 ```js
 libcurl.onload = () => {
   console.log("libcurl.js ready!");
@@ -89,7 +90,14 @@ libcurl.onload = () => {
 
 Once loaded, there will be a `window.libcurl` object which includes all the API functions. The `libcurl.ready` property can also be used to know if the WASM has loaded. 
 
-There are also ES6 modules available if you are using a bundler. The `libcurl.mjs` and `libcurl_full.mjs` files provide this functionality, with the former being set as the entry point for the NPM package.
+There are also ES6 modules available if you are using a bundler. The `libcurl.mjs` and `libcurl_full.mjs` files provide this functionality, with the former being set as the entry point for the NPM package. 
+```js
+//import the regular version
+import { libcurl } from "libcurl.js"; 
+
+//import the version with the wasm included in the js
+import { libcurl } from "libcurl.js/bundled"; 
+```
 
 Examples of running libcurl.js on the main thread and in a web worker are available at `client/index.html` and `client/worker.html` respectively. 
 
@@ -194,8 +202,8 @@ socket.onmessage = (data) => {
 
 ### Changing the Network Transport:
 You can change the underlying network transport by setting `libcurl.transport`. The following values are accepted:
-- `"wisp"` - Use the [Wisp protocol](https://github.com/MercuryWorkshop/wisp-protocol).
-- `"wsproxy"` - Use the wsproxy protocol, where a new websocket is created for each TCP connection. 
+- `"wisp"` - Use the [Wisp protocol](https://github.com/MercuryWorkshop/wisp-protocol). This is the default and the fastest option, since it multiplexes several TCP connections on the same websocket.
+- `"wsproxy"` - Use the wsproxy protocol, where a new websocket is created for each TCP connection. For example, connecting to `wss://example.com/ading.dev:443` would open a new TCP connection to `ading.dev:443`.
 - Any custom class - Use a custom network protocol. If you pass in custom code here, it must be roughly conformant with the standard `WebSocket` API. The URL that is passed into this fake websocket always looks like `"wss://example.com/ws/ading.dev:443"`, where `wss://example.com/ws/` is the proxy server URL, and `ading.dev:443` is the destination server.
 
 ### Changing the Websocket Proxy URL:
@@ -257,7 +265,7 @@ For a full list of server arguments, see the [wisp-server-python documentation](
   - `tools` - Helper shell scripts for the build process, and for compiling the various C libraries.
   - `wisp_client` - A submodule for the Wisp client library.
 - `server` - Contains all the server-side code for running the websocket proxy server. 
-  - `wisp_sever` - A submodule for the Python Wisp server.
+  - `wisp_server` - A submodule for the Python Wisp server.
 
 ## Copyright:
 This project is licensed under the GNU AGPL v3.

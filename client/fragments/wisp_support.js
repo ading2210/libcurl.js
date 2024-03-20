@@ -1,14 +1,21 @@
 /* REPLACE
-new WebSocketConstructor
+ws ?= ?new WebSocketConstructor\(url, ?opts\)
 */
-new ((() => {
+try {
   if (api.transport === "wisp") {
-    return WispWebSocket;
+    ws = new WispWebSocket(url);
   }
   else if (api.transport === "wsproxy") {
-    return WebSocket;
+    ws = new WebSocket(url);
+  }
+  else if (typeof api.transport === "string") {
+    throw "invalid transport type";
   }
   else { //custom transports
-    return api.transport;
+    ws = new api.transport(url);
   }
-})())
+}
+catch (e) {
+  error_msg("Error while creating a TCP connection: " + e);
+  throw e;
+}

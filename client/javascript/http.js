@@ -119,7 +119,7 @@ class HTTPSession extends CurlSession {
 
   static async create_options(params) {
     let body = null;
-    let request_obj = new Request("/", params);
+    let request_obj = new Request("http://127.0.0.1/", params);
     let array_buffer = await request_obj.arrayBuffer();
     if (array_buffer.byteLength > 0) {
       body = new Uint8Array(array_buffer);

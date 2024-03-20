@@ -52,5 +52,8 @@ class JSTest(unittest.TestCase):
   def test_tls_socket(self):
     self.run_test("test_tls_socket.js")
 
+  def test_http_session(self):
+    self.run_test("test_http_session.js")
+
 if __name__ == "__main__":
   unittest.main()

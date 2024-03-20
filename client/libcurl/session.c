@@ -49,4 +49,5 @@ void session_remove_request(struct SessionInfo *session, CURL* http_handle) {
 
 void session_cleanup(struct SessionInfo *session) {
   curl_multi_cleanup(session->multi_handle);
+  free(session);
 }

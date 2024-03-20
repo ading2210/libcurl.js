@@ -1,5 +1,8 @@
 # Libcurl.js Changelog:
 
+## v0.6.1 (3/20/24):
+- Fix NPM package exports
+
 ## v0.6.0 (3/20/24):
 - Refactor JS and C code
 - Allow for multiple sessions with separate connection pools

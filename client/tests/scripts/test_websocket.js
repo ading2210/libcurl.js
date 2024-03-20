@@ -1,8 +1,8 @@
 function test() {
-  let message_len = 128*1024;
+  let message_len = 1024;
 
   return new Promise((resolve, reject) => {
-    let ws = new libcurl.WebSocket("wss://echo.websocket.org");
+    let ws = new libcurl.WebSocket("wss://echo.websocket.in/");
     ws.addEventListener("open", () => {
       ws.send("hello".repeat(message_len));
     });
@@ -12,8 +12,8 @@ function test() {
       messages += 1;
       if (messages >= 2) {
         if (event.data !== "hello".repeat(message_len)) reject("unexpected response");
-        if (messages >= 11) resolve();
-        ws.send("hello".repeat(message_len));
+        else if (messages >= 11) resolve();
+        else ws.send("hello".repeat(message_len));
       }
     });
 

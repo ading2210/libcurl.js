@@ -107,7 +107,7 @@ class CurlWebSocket extends CurlSession {
 
   cleanup(error=0) {
     if (this.http_handle) {
-      this.remove_handle(this.http_handle);
+      this.remove_request(this.http_handle);
       this.http_handle = null;
       super.close();
     }

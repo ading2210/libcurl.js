@@ -1,5 +1,8 @@
 # Libcurl.js Changelog:
 
+## v0.6.3 (3/20/24):
+- Fix an error during websocket cleanup
+
 ## v0.6.1 (3/20/24):
 - Fix NPM package exports
 

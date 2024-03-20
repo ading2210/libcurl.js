@@ -106,7 +106,7 @@ api = {
   WispConnection: WispConnection,
   transport: "wisp",
 
-  WebSocket: WebSocket,
+  WebSocket: FakeWebSocket,
   CurlWebSocket: CurlWebSocket,
   TLSSocket: TLSSocket,
   HTTPSession: HTTPSession,

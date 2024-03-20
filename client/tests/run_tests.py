@@ -55,5 +55,8 @@ class JSTest(unittest.TestCase):
   def test_http_session(self):
     self.run_test("test_http_session.js")
 
+  def test_post(self):
+    self.run_test("test_post.js")
+
 if __name__ == "__main__":
   unittest.main()

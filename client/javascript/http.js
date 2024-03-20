@@ -41,6 +41,7 @@ class HTTPSession extends CurlSession {
   request_async(url, params, body) {
     return new Promise((resolve, reject) => {
       let http_handle;
+      let body_ptr = null; 
   
       let headers_callback = (stream) => {
         let response_json = c_func_str(_http_get_info, [http_handle]);
@@ -53,6 +54,7 @@ class HTTPSession extends CurlSession {
         resolve(response);
       }
       let finish_callback = (error) => {
+        _free(body_ptr);
         if (error > 0) {
           error_msg(`Request "${url}" failed with error code ${error}: ${get_error_str(error)}`);
           reject(`Request failed with error code ${error}: ${get_error_str(error)}`);
@@ -65,12 +67,13 @@ class HTTPSession extends CurlSession {
         }
         this.remove_request(http_handle);
       }
-  
+      
+      body_ptr = body ? allocate_array(body) : null;
       let body_length = body ? body.length : 0;
       let params_json = JSON.stringify(params);
       
       http_handle = this.stream_response(url, headers_callback, finish_callback, params.signal);
-      c_func(_http_set_options, [http_handle, params_json, body, body_length]);
+      c_func(_http_set_options, [http_handle, params_json, body_ptr, body_length]);
       if (this.cookie_filename && params.credentials !== "omit") {
         c_func(_http_set_cookie_jar, [http_handle, this.cookie_filename]);
       }
@@ -139,8 +142,8 @@ class HTTPSession extends CurlSession {
     if (!params.headers["User-Agent"]) {
       params.headers["User-Agent"] = navigator.userAgent;
     }
-    if (body) {
-      params.headers["Content-Type"] = request_obj.headers.get("Content-Type");
+    if (body && !params.headers["Content-Type"]) {
+      params.headers["Content-Type"] = request_obj.headers.get("Content-Type") || "";
     }
 
     return body;

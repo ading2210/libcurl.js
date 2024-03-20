@@ -77,10 +77,15 @@ function data_to_array(data) {
 function c_func(target, args=[]) {
   let str_pointers = [];
   for (let i = 0; i < args.length; i++) {
-    if (typeof args[i] !== "string") {
-      continue;
+    let ptr = null;
+    if (typeof args[i] === "string") {
+      ptr = allocate_str(args[i]);
     }
-    let ptr = allocate_str(args[i]);
+    if (args[i] instanceof Uint8Array) {
+      ptr = allocate_array(args[i]);
+    }
+
+    if (!ptr) continue;
     args[i] = ptr;
     str_pointers.push(ptr);
   }

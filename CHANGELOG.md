@@ -1,5 +1,8 @@
 # Libcurl.js Changelog:
 
+## v0.6.4 (3/20/24):
+- Fix handling of request bodies
+
 ## v0.6.3 (3/20/24):
 - Fix an error during websocket cleanup
 

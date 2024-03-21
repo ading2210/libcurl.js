@@ -51,6 +51,7 @@ if [[ "$*" == *"release"* ]]; then
   echo "note: building with release optimizations"
 else
   COMPILER_OPTIONS="$COMPILER_OPTIONS --profiling -g"
+  EMSCRIPTEN_OPTIONS="$EMSCRIPTEN_OPTIONS -sSTACK_OVERFLOW_CHECK=2 -sSAFE_HEAP=1"
 fi
 
 if [[ "$*" == *"single_file"* ]]; then

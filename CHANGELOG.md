@@ -1,5 +1,8 @@
 # Libcurl.js Changelog:
 
+## v0.6.6 (3/20/24):
+- Fix random segfaults due to an improper invocation of libcurl
+
 ## v0.6.5 (3/20/24):
 - Update Wisp client and server
 - Compile WolfSSL with greater site support

@@ -7,6 +7,7 @@ class CurlSession {
     this.active_requests = 0;
     this.event_loop = null;
     this.requests_list = [];
+    this.to_remove = [];
   }
 
   assert_ready() {
@@ -54,14 +55,18 @@ class CurlSession {
     return request_ptr;
   }
 
-  remove_request(request_ptr) {
-    this.assert_ready();
+  remove_request_now(request_ptr) {
     _session_remove_request(this.session_ptr, request_ptr);
-
     let request_index = this.requests_list.indexOf(request_ptr);
     if (request_index !== -1) {
       this.requests_list.splice(request_index, 1);
     }
+  }
+
+  //remove the request on the next iteration of the loop
+  remove_request(request_ptr) {
+    this.assert_ready();
+    this.to_remove.push(request_ptr);
   }
 
   start_request(request_ptr) {
@@ -77,21 +82,31 @@ class CurlSession {
     }
     
     this.event_loop = setInterval(() => {
-      let libcurl_active = _session_get_active(this.session_ptr);
-      if (libcurl_active || this.active_requests) {
-        _session_perform(this.session_ptr);
-      }
-      else {
-        clearInterval(this.event_loop);
-        this.event_loop = null;
-      }
+      this.event_loop_func();
     }, 0);
+  }
+
+  event_loop_func() {
+    let libcurl_active = _session_get_active(this.session_ptr);
+    if (libcurl_active || this.active_requests || this.to_remove) {
+      if (this.to_remove.length) {
+        for (let request_ptr of this.to_remove) {
+          this.remove_request_now(request_ptr);
+        }
+        this.to_remove = [];
+      }
+      _session_perform(this.session_ptr);
+    }
+    else {
+      clearInterval(this.event_loop);
+      this.event_loop = null;
+    }
   }
 
   close() {
     this.assert_ready();
     for (let request_ptr of this.requests_list) {
-      this.remove_request(request_ptr);
+      this.remove_request_now(request_ptr);
     }
     _session_cleanup(this.session_ptr);
     this.session_ptr = null;

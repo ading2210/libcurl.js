@@ -16,7 +16,8 @@ git clone -b v5.6.6-stable --depth=1 https://github.com/wolfSSL/wolfssl wolfssl
 cd wolfssl
 
 autoreconf -fi
-CFLAGS="-Oz -DSP_WORD_SIZE=32 -DWOLFSSL_NO_ATOMICS" emconfigure ./configure --prefix=$PREFIX --enable-curl --enable-static --disable-shared --host=i686-linux --disable-examples --disable-asm --enable-sni --enable-alpn --enable-truncatedhmac --enable-oldtls --enable-tlsv12 --enable-all-crypto --disable-asyncthreads --disable-threadlocal --enable-tlsx 
+export CFLAGS="-Oz -DSP_WORD_SIZE=32 -DWOLFSSL_NO_ATOMICS -DWOLFSSL_TICKET_NONCE_MALLOC" 
+emconfigure ./configure --prefix=$PREFIX --enable-curl --enable-static --disable-shared --host=i686-linux --disable-examples --disable-asm --enable-sni --enable-alpn --enable-truncatedhmac --enable-oldtls --enable-tlsv12 --enable-all-crypto --disable-asyncthreads --disable-threadlocal --enable-tlsx 
 emmake make -j$CORE_COUNT
 make install
 

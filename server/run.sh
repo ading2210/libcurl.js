@@ -13,7 +13,7 @@ if [ ! -d "$SERVER_PATH.venv" ]; then
 fi
 source $SERVER_PATH/.venv/bin/activate
 
-if ! python3 -c "import websockets" 2> /dev/null; then
+if ! python3 -c "import websockets, asyncudp" 2> /dev/null; then
   pip3 install -r $SERVER_PATH/requirements.txt
 fi
 

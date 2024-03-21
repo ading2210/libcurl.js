@@ -1,5 +1,9 @@
 # Libcurl.js Changelog:
 
+## v0.6.5 (3/20/24):
+- Update Wisp client and server
+- Compile WolfSSL with greater site support
+
 ## v0.6.4 (3/20/24):
 - Fix handling of request bodies
 

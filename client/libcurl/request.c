@@ -55,6 +55,12 @@ CURL* create_request(const char* url, DataCallback data_callback, EndCallback en
   return http_handle;
 }
 
+void request_cleanup(CURL* http_handle) {
+  struct RequestInfo *request_info = get_request_info(http_handle);
+  curl_easy_cleanup(http_handle);
+  free(request_info);
+}
+
 void finish_request(CURLMsg *curl_msg) {
   CURL *http_handle = curl_msg->easy_handle;
   struct RequestInfo *request_info = get_request_info(http_handle);

@@ -41,10 +41,7 @@ int session_get_active(struct SessionInfo *session) {
 }
 
 void session_remove_request(struct SessionInfo *session, CURL* http_handle) {
-  struct RequestInfo *request_info = get_request_info(http_handle);
   curl_multi_remove_handle(session->multi_handle, http_handle);
-  curl_easy_cleanup(http_handle);
-  free(request_info);
 }
 
 void session_cleanup(struct SessionInfo *session) {

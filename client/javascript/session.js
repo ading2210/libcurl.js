@@ -56,7 +56,11 @@ class CurlSession {
   }
 
   remove_request_now(request_ptr) {
-    _session_remove_request(this.session_ptr, request_ptr);
+    if (this.session_ptr) {
+      _session_remove_request(this.session_ptr, request_ptr);
+    }
+    _request_cleanup(request_ptr);
+    
     let request_index = this.requests_list.indexOf(request_ptr);
     if (request_index !== -1) {
       this.requests_list.splice(request_index, 1);
@@ -66,7 +70,9 @@ class CurlSession {
   //remove the request on the next iteration of the loop
   remove_request(request_ptr) {
     this.assert_ready();
-    this.to_remove.push(request_ptr);
+    setTimeout(() => {
+      this.remove_request_now(request_ptr);
+    }, 1)
   }
 
   start_request(request_ptr) {
@@ -88,13 +94,7 @@ class CurlSession {
 
   event_loop_func() {
     let libcurl_active = _session_get_active(this.session_ptr);
-    if (libcurl_active || this.active_requests || this.to_remove) {
-      if (this.to_remove.length) {
-        for (let request_ptr of this.to_remove) {
-          this.remove_request_now(request_ptr);
-        }
-        this.to_remove = [];
-      }
+    if (libcurl_active || this.active_requests) {
       _session_perform(this.session_ptr);
     }
     else {
@@ -103,13 +103,19 @@ class CurlSession {
     }
   }
 
-  close() {
-    this.assert_ready();
+  close_now() {
     for (let request_ptr of this.requests_list) {
       this.remove_request_now(request_ptr);
     }
     _session_cleanup(this.session_ptr);
     this.session_ptr = null;
+  }
+
+  close() {
+    this.assert_ready();
+    setTimeout(() => {
+      this.close_now();
+    }, 1);
   }
 
   //wrap request callbacks using a readable stream and return the new callbacks

@@ -1,5 +1,8 @@
 # Libcurl.js Changelog:
 
+## v0.6.7 (3/26/24):
+- Fix handling of `Request` objects when passed into `libcurl.fetch`
+
 ## v0.6.6 (3/20/24):
 - Fix random segfaults due to an improper invocation of libcurl
 

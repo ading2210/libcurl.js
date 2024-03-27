@@ -82,7 +82,14 @@ class HTTPSession extends CurlSession {
     });
   }
 
-  async fetch(url, params={}) {
+  async fetch(resource, params={}) {
+    let url = resource;
+    if (resource instanceof Request) {
+      url = resource.url;
+      params.body = params.body || await resource.blob();
+      params.headers = params.headers || Object.fromEntries(resource.headers);
+      params.method = params.method || resource.method;
+    }
     let body = await this.constructor.create_options(params);
     return await this.request_async(url, params, body);
   }

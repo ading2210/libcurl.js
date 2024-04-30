@@ -1,5 +1,9 @@
 # Libcurl.js Changelog:
 
+## v0.6.8 (4/30/24):
+- Add support for relative URLs in HTTP sessions
+- Better error handling for invalid URLs
+
 ## v0.6.7 (3/26/24):
 - Fix handling of `Request` objects when passed into `libcurl.fetch`
 
@@ -91,14 +95,14 @@
 - Add an option to redirect the verbose curl output.
 - Use separate callbacks for stdout and stderr.
 
-## v0.1.2 (2/1/23):
+## v0.1.2 (2/1/24):
 - Fix bundling the WASM into a single file
 - Add unit tests
 
-## v0.1.1 (1/29/23):
+## v0.1.1 (1/29/24):
 - Don't set a default websocket proxy URL
 
-## v0.1.0 (1/28/23):
+## v0.1.0 (1/28/24):
 - Initial release on NPM
 - Add Github Actions for automatic builds
 - Add WebSocket support

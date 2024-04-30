@@ -134,6 +134,17 @@ Each HTTP session has the following methods available:
 - `export_cookies` - Export any cookies which were recorded in the session. This will return an empty string if cookies are disabled or no cookies have been set yet. 
 - `close` - Close all connections and clean up the session. You must call this after you are done using the session, otherwise it will leak memory. 
 
+The following attributes are supported:
+- `base_url` - Set the base URL used to resolve relative URLs. If this is not defined then an error will be thrown when attempting to fetch a relative URL.
+
+```js
+let session = new libcurl.HTTPSession();
+session.base_url = "https://ading.dev";
+let r = await session.fetch("/projects/");
+console.log(await r.text());
+session.close();
+```
+
 ### Creating WebSocket Connections:
 To use WebSockets, create a `libcurl.CurlWebSocket` object, which takes the following arguments:
 - `url` - The Websocket URL.

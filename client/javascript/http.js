@@ -2,6 +2,7 @@ class HTTPSession extends CurlSession {
   constructor(options={}) {
     super();
     this.options = options;
+    this.base_url = undefined;
 
     this.set_connections(50, 40);
     this.import_cookies();
@@ -89,6 +90,9 @@ class HTTPSession extends CurlSession {
       params.body = params.body || await resource.blob();
       params.headers = params.headers || Object.fromEntries(resource.headers);
       params.method = params.method || resource.method;
+    }
+    else {
+      url = (new URL(url, this.base_url)).href;
     }
     let body = await this.constructor.create_options(params);
     return await this.request_async(url, params, body);

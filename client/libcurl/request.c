@@ -18,17 +18,17 @@ struct curl_blob cacert_blob;
 
 size_t write_function(char *data, size_t size, size_t nmemb, struct RequestInfo *request_info) {
   size_t real_size = size * nmemb;
-  (*request_info->data_callback)(data, real_size);
+  (*request_info->data_callback)(request_info->request_id, data, real_size);
   return real_size;
 }
 
 size_t header_function(char *data, size_t size, size_t nmemb, struct RequestInfo *request_info) {
   size_t real_size = size * nmemb;
-  (*request_info->headers_callback)(data, real_size);
+  (*request_info->headers_callback)(request_info->request_id, data, real_size);
   return real_size;
 }
 
-CURL* create_request(const char* url, DataCallback data_callback, EndCallback end_callback, DataCallback headers_callback) {
+CURL* create_request(const char* url, int request_id, DataCallback data_callback, EndCallback end_callback, DataCallback headers_callback) {
   CURL *http_handle = curl_easy_init();  
 
   //create request metadata struct
@@ -36,6 +36,7 @@ CURL* create_request(const char* url, DataCallback data_callback, EndCallback en
   request_info->http_handle = http_handle;
   request_info->curl_msg = NULL;
   request_info->headers_list = NULL;
+  request_info->request_id = request_id;
   request_info->end_callback = end_callback;
   request_info->data_callback = data_callback;
   request_info->headers_callback = headers_callback;
@@ -71,7 +72,7 @@ void finish_request(CURLMsg *curl_msg) {
   if (request_info->headers_list != NULL) {
     curl_slist_free_all(request_info->headers_list);
   }
-  (*request_info->end_callback)(error);
+  (*request_info->end_callback)(request_info->request_id, error);
 }
 
 unsigned char* get_cacert() {

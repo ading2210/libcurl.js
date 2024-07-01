@@ -55,7 +55,10 @@ class HTTPSession extends CurlSession {
         resolve(response);
       }
       let finish_callback = (error) => {
-        _free(body_ptr);
+        if (body_ptr != null) {
+          _free(body_ptr);
+          body_ptr = null;
+        }
         if (error > 0) {
           error_msg(`Request "${url}" failed with error code ${error}: ${get_error_str(error)}`);
           reject(`Request failed with error code ${error}: ${get_error_str(error)}`);

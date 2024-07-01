@@ -42,7 +42,6 @@ This is an experimental port of [libcurl](https://curl.se/libcurl/) to WebAssemb
 - Works in all major browsers (Chromium >= 64, Firefox >= 65, Safari >= 14)
 - Has the ability to create multiple independent sessions
 - Small footprint size (800kb after compression) and low runtime memory usage
-- Support for running inside a web worker
 - Support for Brotli and gzip compressed responses
 
 ## Building:

@@ -65,13 +65,6 @@ class CurlWebSocket extends CurlSession {
 
     //CURLE_OK - data received 
     if (result_code === 0 && !result_closed) {
-      if (_get_result_closed(result_ptr)) {
-        _free(data_ptr);
-        _free(result_ptr);
-        this.cleanup();
-        return returned_data;
-      }
-
       let data_size = _get_result_size(result_ptr);
       let data_heap = Module.HEAPU8.subarray(data_ptr, data_ptr + data_size);
       let data = new Uint8Array(data_heap);

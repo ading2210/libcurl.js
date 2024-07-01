@@ -8,6 +8,18 @@ class CurlSession {
     this.event_loop = null;
     this.requests_list = [];
     this.to_remove = [];
+  
+    this.end_callback_ptr = Module.addFunction((request_id, error) => {
+      this.end_callback(request_id, error);
+    }, "vii");
+    this.headers_callback_ptr = Module.addFunction((request_id, chunk_ptr, chunk_size) => {
+      this.headers_callback(request_id, chunk_ptr, chunk_size)
+    }, "viii");
+    this.data_callback_ptr = Module.addFunction((request_id, chunk_ptr, chunk_size) => {
+      this.data_callback(request_id, chunk_ptr, chunk_size)
+    }, "viii");
+    this.request_callbacks = {};
+    this.last_request_id = 0;
   }
 
   assert_ready() {
@@ -21,37 +33,36 @@ class CurlSession {
     _session_set_options(this.session_ptr, connections_limit, cache_limit);
   }
 
+  end_callback(request_id, error) {
+    this.active_requests--;
+    this.request_callbacks[request_id].end(error);
+    delete this.request_callbacks[request_id];
+  }
+
+  data_callback(request_id, chunk_ptr, chunk_size) {
+    let data = Module.HEAPU8.subarray(chunk_ptr, chunk_ptr + chunk_size);
+    let chunk = new Uint8Array(data);
+    this.request_callbacks[request_id].data(chunk);
+  }
+
+  headers_callback(request_id, chunk_ptr, chunk_size) {
+    let data = Module.HEAPU8.subarray(chunk_ptr, chunk_ptr + chunk_size);
+    let chunk = new Uint8Array(data);
+    this.request_callbacks[request_id].headers(chunk);
+  }
+
   create_request(url, js_data_callback, js_end_callback, js_headers_callback) {
     this.assert_ready();
-    let end_callback_ptr;
-    let data_callback_ptr;
-    let headers_callback_ptr;
-  
-    let end_callback = (error) => {
-      Module.removeFunction(end_callback_ptr);
-      Module.removeFunction(data_callback_ptr);
-      
-      this.active_requests--;
-      js_end_callback(error);
+    let request_id = this.last_request_id++;
+    this.request_callbacks[request_id] = {
+      end: js_end_callback,
+      data: js_data_callback,
+      headers: js_headers_callback
     }
   
-    let data_callback = (chunk_ptr, chunk_size) => {
-      let data = Module.HEAPU8.subarray(chunk_ptr, chunk_ptr + chunk_size);
-      let chunk = new Uint8Array(data);
-      js_data_callback(chunk);
-    }
-  
-    let headers_callback = (chunk_ptr, chunk_size) => {
-      let data = Module.HEAPU8.subarray(chunk_ptr, chunk_ptr + chunk_size);
-      let chunk = new Uint8Array(data);
-      js_headers_callback(chunk);
-    }
-  
-    end_callback_ptr = Module.addFunction(end_callback, "vi");
-    headers_callback_ptr = Module.addFunction(headers_callback, "vii");
-    data_callback_ptr = Module.addFunction(data_callback, "vii");
-    let request_ptr = c_func(_create_request, [url, data_callback_ptr, end_callback_ptr, headers_callback_ptr]);
-    
+    let request_ptr = c_func(_create_request, [
+      url, request_id, this.data_callback_ptr, this.end_callback_ptr, this.headers_callback_ptr
+    ]);
     return request_ptr;
   }
 
@@ -109,6 +120,9 @@ class CurlSession {
     }
     _session_cleanup(this.session_ptr);
     this.session_ptr = null;
+    Module.removeFunction(this.end_callback_ptr);
+    Module.removeFunction(this.headers_callback_ptr);
+    Module.removeFunction(this.data_callback_ptr);
   }
 
   close() {
@@ -137,7 +151,7 @@ class CurlSession {
         if (headers_received) {
           stream_controller.error("The operation was aborted.");
         }
-        real_abort_callback();
+        real_end_callback(-1);
       });
     }
 

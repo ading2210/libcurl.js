@@ -43,9 +43,9 @@ function check_loaded(check_websocket) {
 }
 function set_websocket_url(url) {
   websocket_url = url;
-  if (Module.websocket) {
-    Module.websocket.url = url;
-  }
+  if (typeof Module.websocket === "undefined") 
+    Module.websocket = {};
+  Module.websocket.url = url;
   if (!main_session && wasm_ready) {
     setup_main_session();
   }

@@ -1,5 +1,8 @@
 # Libcurl.js Changelog:
 
+## v0.6.10 (7/11/24):
+- Fix a problem where the websocket URL wouldn't be set properly in some cases
+
 ## v0.6.9 (7/10/24):
 - Fix a possible double free when requests get aborted
 - Handle `ReadableStream` objects as the request payload

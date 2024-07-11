@@ -52,6 +52,7 @@ if [[ "$*" == *"release"* ]]; then
 else
   COMPILER_OPTIONS="$COMPILER_OPTIONS --profiling -g "
   EMSCRIPTEN_OPTIONS="$EMSCRIPTEN_OPTIONS -sSTACK_OVERFLOW_CHECK=2"
+  echo "note: this is a debug build"
 fi
 
 if [[ "$*" == *"asan"* ]]; then

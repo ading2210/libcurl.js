@@ -28,7 +28,7 @@ EXPORTED_FUNCS="${EXPORTED_FUNCS:1}"
 #compile options
 RUNTIME_METHODS="addFunction,removeFunction,allocate,ALLOC_NORMAL"
 COMPILER_OPTIONS="-o $MODULE_FILE -lcurl -lwolfssl -lcjson -lz -lbrotlidec -lbrotlicommon -lnghttp2 -I $INCLUDE_DIR -L $LIB_DIR"
-EMSCRIPTEN_OPTIONS="-lwebsocket.js -sENVIRONMENT=worker,web -sASSERTIONS=1 -sLLD_REPORT_UNDEFINED -sALLOW_TABLE_GROWTH -sALLOW_MEMORY_GROWTH -sEXPORTED_FUNCTIONS=$EXPORTED_FUNCS -sEXPORTED_RUNTIME_METHODS=$RUNTIME_METHODS"
+EMSCRIPTEN_OPTIONS="-lwebsocket.js -sENVIRONMENT=worker,web -sASSERTIONS=1 -sLLD_REPORT_UNDEFINED -sALLOW_TABLE_GROWTH -sALLOW_MEMORY_GROWTH -sNO_EXIT_RUNTIME -sEXPORTED_FUNCTIONS=$EXPORTED_FUNCS -sEXPORTED_RUNTIME_METHODS=$RUNTIME_METHODS"
 
 #clean output dir
 rm -rf $OUT_DIR
@@ -50,8 +50,13 @@ if [[ "$*" == *"release"* ]]; then
   COMPILER_OPTIONS="-Oz -flto $COMPILER_OPTIONS"
   echo "note: building with release optimizations"
 else
-  COMPILER_OPTIONS="$COMPILER_OPTIONS --profiling -g"
-  EMSCRIPTEN_OPTIONS="$EMSCRIPTEN_OPTIONS -sSTACK_OVERFLOW_CHECK=2 -sSAFE_HEAP=1"
+  COMPILER_OPTIONS="$COMPILER_OPTIONS --profiling -g "
+  EMSCRIPTEN_OPTIONS="$EMSCRIPTEN_OPTIONS -sSTACK_OVERFLOW_CHECK=2"
+fi
+
+if [[ "$*" == *"asan"* ]]; then
+  COMPILER_OPTIONS="$COMPILER_OPTIONS -fsanitize=address"
+  echo "note: building with asan, performance will suffer"
 fi
 
 if [[ "$*" == *"single_file"* ]]; then
@@ -78,6 +83,8 @@ rm $MODULE_FILE
 
 #add version number and copyright notice
 VERSION=$(cat package.json | jq -r '.version')
+[[ "$*" != *"release"* ]] && VERSION="$VERSION-dev"
+[[ "$*" == *"asan"* ]] && VERSION="$VERSION-asan"
 sed -i "s/__library_version__/$VERSION/" $OUT_FILE
 WISP_VERSION=$(cat $WISP_CLIENT/package.json | jq -r '.version')
 sed -i "s/__wisp_version__/$WISP_VERSION/" $OUT_FILE

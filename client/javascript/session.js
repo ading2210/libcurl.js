@@ -166,6 +166,8 @@ class CurlSession {
       }
       catch (e) {
         //the readable stream has been closed elsewhere, so cancel the request
+        if (aborted) return;
+        aborted = true;
         if (e instanceof TypeError) {
           end_callback(-1);
         }

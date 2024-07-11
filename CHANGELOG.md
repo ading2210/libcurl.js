@@ -1,5 +1,10 @@
 # Libcurl.js Changelog:
 
+## v0.6.9 (4/30/24):
+- Fix a possible double free when requests get aborted
+- Handle `ReadableStream` objects as the request payload
+- Support the Clang AddressSanitizer
+
 ## v0.6.8 (4/30/24):
 - Add support for relative URLs in HTTP sessions
 - Better error handling for invalid URLs

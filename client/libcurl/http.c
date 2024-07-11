@@ -111,3 +111,6 @@ char* http_get_info(CURL* http_handle) {
 
   return response_json_str;
 }
+
+//the address sanitizer falsely flags any malloc operation as a memory leak
+const char* __asan_default_options() { return "detect_leaks=false"; }

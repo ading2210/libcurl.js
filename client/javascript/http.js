@@ -41,9 +41,9 @@ class HTTPSession extends CurlSession {
 
   request_async(url, params, body) {
     return new Promise((resolve, reject) => {
-      let http_handle;
+      let http_handle = null;
       let body_ptr = null; 
-  
+
       let headers_callback = (stream) => {
         let response_json = c_func_str(_http_get_info, [http_handle]);
         let response = this.constructor.create_response(stream, JSON.parse(response_json));
@@ -59,6 +59,12 @@ class HTTPSession extends CurlSession {
           _free(body_ptr);
           body_ptr = null;
         }
+        if (http_handle == null) {
+          //a race condition with aborting requests may lead to this state
+          //if the request gets cancelled right before it finishes normally, this function gets called twice
+          //fortunately, we can just return here to prevent anything bad from happening
+          return;
+        }
         if (error > 0) {
           error_msg(`Request "${url}" failed with error code ${error}: ${get_error_str(error)}`);
           reject(`Request failed with error code ${error}: ${get_error_str(error)}`);
@@ -70,6 +76,7 @@ class HTTPSession extends CurlSession {
           reject("Request failed because redirects were disallowed.");
         }
         this.remove_request(http_handle);
+        http_handle = null;
       }
       
       body_ptr = body ? allocate_array(body) : null;
@@ -94,8 +101,14 @@ class HTTPSession extends CurlSession {
       params.headers = params.headers || Object.fromEntries(resource.headers);
       params.method = params.method || resource.method;
     }
-    else {
+    else if (typeof url === "string" || url instanceof String) {
       url = (new URL(url, this.base_url)).href;
+    }
+    else if (url instanceof URL) {
+      url = url.href;
+    }
+    else {
+      url = "" + url;
     }
     let body = await this.constructor.create_options(params);
     return await this.request_async(url, params, body);

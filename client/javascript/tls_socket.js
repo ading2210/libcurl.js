@@ -17,8 +17,15 @@ class TLSSocket extends CurlSession {
     this.connected = false;
     this.recv_loop = null;
 
-    this.set_connections(1, 0);
-    this.connect();
+    try {
+      check_proxy(this.options.proxy);
+      this.set_connections(1, 0);
+      this.connect();
+    }
+    catch (e) {
+      this.cleanup(true);
+      throw e;
+    }
   }
 
   connect() {
@@ -40,6 +47,9 @@ class TLSSocket extends CurlSession {
 
     this.http_handle = this.create_request(this.url, data_callback, finish_callback, headers_callback);
     _tls_socket_set_options(this.http_handle, +this.options.verbose);
+    if (this.options.proxy) {
+      c_func_str(_request_set_proxy, [this.http_handle, this.options.proxy]);
+    }
     this.start_request(this.http_handle);
   }
 

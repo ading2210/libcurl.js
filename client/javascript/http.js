@@ -88,6 +88,9 @@ class HTTPSession extends CurlSession {
       if (this.cookie_filename && params.credentials !== "omit") {
         c_func(_http_set_cookie_jar, [http_handle, this.cookie_filename]);
       }
+      if (params.proxy) {
+        c_func_str(_request_set_proxy, [http_handle, params.proxy]);
+      }
 
       this.start_request(http_handle);
     });
@@ -110,6 +113,12 @@ class HTTPSession extends CurlSession {
     else {
       url = "" + url;
     }
+
+    if (this.options && this.options.proxy) {
+      params.proxy = this.options.proxy;
+    }
+    check_proxy(params.proxy);
+
     let body = await this.constructor.create_options(params);
     return await this.request_async(url, params, body);
   }
@@ -152,6 +161,7 @@ class HTTPSession extends CurlSession {
     if (params.body instanceof ReadableStream) {
       params.duplex = "half";
     }
+
     let request_obj = new Request("http://127.0.0.1/", params);
     let array_buffer = await request_obj.arrayBuffer();
     if (array_buffer.byteLength > 0) {

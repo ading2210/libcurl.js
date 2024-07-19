@@ -9,6 +9,7 @@ session_cleanup
 
 request_cleanup
 create_request
+request_set_proxy
 get_version
 get_cacert
 get_error_str

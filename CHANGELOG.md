@@ -1,5 +1,8 @@
 # Libcurl.js Changelog:
 
+## v0.6.11 (7/18/24):
+- Add support for SOCKS5, SOCKS4, and HTTP proxies
+
 ## v0.6.10 (7/11/24):
 - Fix a problem where the websocket URL wouldn't be set properly in some cases
 

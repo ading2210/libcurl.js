@@ -105,3 +105,13 @@ function c_func_str(target, args=[]) {
   _free(ptr);
   return str;
 }
+
+//ensure that the proxy url has a valid protocol
+function check_proxy(proxy) {
+  if (typeof proxy === "string" || proxy instanceof String) {
+    let protocol = new URL(proxy).protocol;
+    if (!["socks5h:", "socks4a:", "http:"].includes(protocol)) {
+      throw new TypeError("Only socks5h, socks4a, and http proxies are supported.");
+    }
+  }
+}

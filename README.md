@@ -122,6 +122,8 @@ Sending cookies is supported, but they will not be automatically sent unless you
 
 The response may contain multiple HTTP headers with the same name, which the `Headers` object isn't able to properly represent. If this matters to you, use `response.raw_headers`, which is an array of key value pairs, instead of `response.headers`. There is support for streaming the response body using a `ReadableStream`, as well as canceling requests using an `AbortSignal`. All requests made using this method share the same connection pool, which has a limit of 50 active TCP connections.
 
+The `proxy` option may be used to specify the URL of a `socks5h`, `socks4a`, or `http` proxy server. For example `proxy: "socks5h://127.0.0.0:1080"` will set the proxy server for just the current request.
+
 ### Creating New HTTP Sessions:
 To create new sessions for HTTP requests, use the `libcurl.HTTPSession` class. The constructor for this class takes the following arguments:
 - `options` - An optional object with various settings.
@@ -129,6 +131,7 @@ To create new sessions for HTTP requests, use the `libcurl.HTTPSession` class. T
 The valid HTTP session settings are:
 - `enable_cookies` - A boolean which indicate whether or not cookies should be persisted within the session.
 - `cookie_jar` - A string containing the data in the cookie jar file. This should have been exported from a previous session. For more information on the format for this file, see the [curl documentation](https://curl.se/docs/http-cookies.html).
+- `proxy` - A URL for a `socks5h`, `socks4a`, or `http` proxy server. 
 
 Each HTTP session has the following methods available:
 - `fetch` - Identical to the `libcurl.fetch` function but only creates connections in this session.
@@ -156,6 +159,7 @@ To use WebSockets, create a `libcurl.CurlWebSocket` object, which takes the foll
 The valid WebSocket options are:
 - `headers` - HTTP request headers for the websocket handshake.
 - `verbose` - A boolean flag that toggles the verbose libcurl output. This verbose output will be passed to the function defined in `libcurl.stderr`, which is `console.warn` by default.
+- `proxy` - A URL for a `socks5h`, `socks4a`, or `http` proxy server. 
 
 The following callbacks are available:
 - `CurlWebSocket.onopen` - Called when the websocket is successfully connected.
@@ -198,6 +202,7 @@ Raw TLS sockets can be created with the `libcurl.TLSSocket` class, which takes t
 
 The valid TLS socket options are:
 - `verbose` - A boolean flag that toggles the verbose libcurl output. 
+- `proxy` - A URL for a `socks5h`, `socks4a`, or `http` proxy server. 
 
 The callbacks work similarly to the `libcurl.CurlWebSocket` object, with the main difference being that the `onmessage` callback always returns a `Uint8Array`.
 

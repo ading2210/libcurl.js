@@ -19,8 +19,15 @@ class CurlWebSocket extends CurlSession {
     this.http_handle = null;
     this.recv_buffer = [];
 
-    this.set_connections(1, 0);
-    this.connect();
+    try {
+      check_proxy(this.options.proxy);
+      this.set_connections(1, 0);
+      this.connect();
+    }
+    catch (e) {
+      this.cleanup(true);
+      throw e;
+    }
   }
 
   connect() {
@@ -52,6 +59,9 @@ class CurlWebSocket extends CurlSession {
     this.http_handle = this.create_request(this.url, data_callback, finish_callback, headers_callback);
     c_func(_http_set_options, [this.http_handle, JSON.stringify(request_options), null, 0]);
     _websocket_set_options(this.http_handle);
+    if (this.options.proxy) {
+      c_func_str(_request_set_proxy, [this.http_handle, this.options.proxy]);
+    }
     this.start_request(this.http_handle);
   }
 

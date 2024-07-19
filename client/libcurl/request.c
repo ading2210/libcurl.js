@@ -75,6 +75,10 @@ void finish_request(CURLMsg *curl_msg) {
   (*request_info->end_callback)(request_info->request_id, error);
 }
 
+void request_set_proxy(CURL* http_handle, const char* proxy_url) {
+  curl_easy_setopt(http_handle, CURLOPT_PROXY, proxy_url);
+}
+
 unsigned char* get_cacert() {
   return _cacert_pem;
 }

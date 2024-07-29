@@ -21,6 +21,7 @@ This is an experimental port of [libcurl](https://curl.se/libcurl/) to WebAssemb
   * [Getting Error Strings](#getting-error-strings)
   * [Getting Version Info](#getting-version-info)
   * [Getting the CA Certificates Bundle](#getting-the-ca-certificates-bundle)
+  * [Using the Wisp Client](#using-the-wisp-client)
 - [Proxy Server](#proxy-server)
 - [Project Structure](#project-structure)
 - [Copyright](#copyright)
@@ -265,6 +266,9 @@ You can get version information from the `libcurl.version` object. This object w
 
 ### Getting the CA Certificates Bundle:
 You can get the CA cert bundle that libcurl uses by calling `libcurl.get_cacert`. The function will return a string with the certificates in PEM format. The cert bundle comes from the [official curl website](https://curl.se/docs/caextract.html), which is extracted from the Mozilla Firefox source code. 
+
+### Using the Wisp Client
+The `libcurl.wisp` object exposes all of the APIs from [wisp-client-js](https://github.com/MercuryWorkshop/wisp-client-js). This API is not guarenteed to be reliable. 
 
 ## Proxy Server:
 The proxy server consists of a standard [Wisp](https://github.com/MercuryWorkshop/wisp-protocol) server, allowing multiple TCP connections to share the same websocket.

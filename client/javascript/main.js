@@ -102,8 +102,12 @@ api = {
   get_cacert: get_cacert,
   get_error_string: get_error_str,
 
-  wisp_connections: _wisp_connections,
-  WispConnection: WispConnection,
+  wisp: {
+    wisp_connections: _wisp_connections,
+    WispConnection: WispConnection,
+    WispWebSocket: WispWebSocket  
+  },
+
   transport: "wisp",
 
   WebSocket: FakeWebSocket,

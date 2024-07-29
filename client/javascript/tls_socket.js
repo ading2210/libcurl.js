@@ -1,5 +1,3 @@
-//currently broken
-
 class TLSSocket extends CurlSession {
   constructor(hostname, port, options={}) {
     super();

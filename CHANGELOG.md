@@ -1,5 +1,8 @@
 # Libcurl.js Changelog:
 
+## v0.6.12 (7/28/24):
+- The APIs from [wisp-client-js](https://github.com/MercuryWorkshop/wisp-client-js) are now exposed at `libcurl.wisp`
+
 ## v0.6.11 (7/18/24):
 - Add support for SOCKS5, SOCKS4, and HTTP proxies
 

@@ -1,5 +1,8 @@
 # Libcurl.js Changelog:
 
+## v0.6.13 (9/1/24):
+- A minor bug where the hostname for TCP connections would be wrong in certain cases has been fixed. 
+
 ## v0.6.12 (7/28/24):
 - The APIs from [wisp-client-js](https://github.com/MercuryWorkshop/wisp-client-js) are now exposed at `libcurl.wisp`
 

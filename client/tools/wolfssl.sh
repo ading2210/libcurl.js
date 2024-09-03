@@ -12,7 +12,7 @@ mkdir -p $PREFIX
 
 cd build
 rm -rf wolfssl
-git clone -b v5.6.6-stable --depth=1 https://github.com/wolfSSL/wolfssl wolfssl
+git clone -b v5.7.2-stable --depth=1 https://github.com/wolfSSL/wolfssl wolfssl
 cd wolfssl
 
 autoreconf -fi

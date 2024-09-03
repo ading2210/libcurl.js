@@ -1,5 +1,7 @@
 import unittest
+import shutil
 
+import selenium.common.exceptions
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.by import By
@@ -18,7 +20,12 @@ class JSTest(unittest.TestCase):
     options.add_argument("--disable-gpu")
     options.set_capability("goog:loggingPrefs", {"browser": "ALL"})
 
-    self.browser = webdriver.Chrome(options=options)
+    try:
+      self.browser = webdriver.Chrome(options=options)
+    except selenium.common.exceptions.NoSuchDriverException:
+      chromedriver_path = shutil.which("chromedriver")
+      service = webdriver.ChromeService(executable_path=chromedriver_path)
+      self.browser = webdriver.Chrome(options=options, service=service)
 
   def tearDown(self):
     self.browser.quit()

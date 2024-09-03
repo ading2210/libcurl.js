@@ -23,4 +23,5 @@ echo
 
 sleep 1
 echo "wisp server ready, running tests"
+export SE_AVOID_STATS=true #turn of selenium telemetry
 python3 tests/run_tests.py

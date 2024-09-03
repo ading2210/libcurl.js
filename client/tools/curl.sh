@@ -18,7 +18,15 @@ git clone -b curl-8_9_1 --depth=1 https://github.com/curl/curl
 cd curl
 
 autoreconf -fi
-emconfigure ./configure --host i686-linux --disable-shared --disable-threaded-resolver --without-libpsl --disable-netrc --disable-ipv6 --disable-tftp --disable-ntlm-wb --enable-websockets --with-wolfssl=$WOLFSSL_PREFIX --with-zlib=$ZLIB_PREFIX --with-brotli=$BROTLI_PREFIX --with-nghttp2=$NGHTTP2_PREFIX
+emconfigure ./configure --host i686-linux \
+  --disable-shared --disable-threaded-resolver --without-libpsl \
+  --disable-netrc --disable-ipv6 --disable-tftp --disable-ntlm-wb \
+  --enable-websockets --disable-ftp --disable-file --disable-gopher \
+  --disable-imap --disable-mqtt --disable-pop3 --disable-rtsp \
+  --disable-smb --disable-smtp --disable-telnet --disable-dict \
+  --with-wolfssl=$WOLFSSL_PREFIX --with-zlib=$ZLIB_PREFIX \
+  --with-brotli=$BROTLI_PREFIX --with-nghttp2=$NGHTTP2_PREFIX
+
 emmake make -j$CORE_COUNT CFLAGS="-Oz" LIBS="-lbrotlicommon"
 
 rm -rf $PREFIX

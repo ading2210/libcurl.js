@@ -4,7 +4,7 @@
 ![npm downloads badge](https://img.shields.io/npm/dm/libcurl.js?color=ff5627&style=flat-square)
 ![jsdelivr downloads badge](https://data.jsdelivr.com/v1/package/npm/libcurl.js/badge/month)
 
-This is an experimental port of [libcurl](https://curl.se/libcurl/) to WebAssembly for use in the browser. It provides an interface compatible with the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), allowing you to proxy HTTPS requests from the browser with full TLS encryption. Unlike previous implementations, the proxy server cannot read the contents of your requests. 
+This is a port of [libcurl](https://curl.se/libcurl/) to WebAssembly for use in the browser. It provides an interface compatible with the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), allowing you to proxy HTTPS requests from the browser with full TLS encryption. Unlike previous implementations, the proxy server cannot read the contents of your requests. 
 
 ## Table of Contents:
 - [Features](#features)
@@ -74,7 +74,7 @@ To import the library, follow the build instructions in the previous section, an
 <script defer src="./out/libcurl.js" onload="libcurl.load_wasm('/out/libcurl.wasm');"></script>
 ```
 
-You may also call and await `libcurl.load_wasm` in your own async code. It returns a promise which resolves once libcurl.js is fully ready. 
+You may also call and await `libcurl.load_wasm` in your own async code. It returns a promise which resolves once libcurl.js is fully ready. If the WASM is already loaded, the function will return immediately. If the WASM loading fails, the promise will be rejected with an error message.
 ```js
 async function main() {
   await libcurl.load_wasm("/out/libcurl.wasm");
@@ -84,13 +84,13 @@ main();
 ```
 If you are using the single file version (`libcurl_full.js`), the `libcurl.load_wasm` function can still be used to wait for the WASM to load, although the url provided to it has no effect. 
 
-Alternatively, prebuilt versions can be found on NPM and jsDelivr. You can use the following URLs to load libcurl.js from a third party CDN.
+Alternatively, prebuilt versions can be found on NPM and jsDelivr. You can use the [following URLs](https://cdn.jsdelivr.net/npm/libcurl.js@latest/) to load libcurl.js from a third party CDN.
 ```
 https://cdn.jsdelivr.net/npm/libcurl.js@latest/libcurl.js
 https://cdn.jsdelivr.net/npm/libcurl.js@latest/libcurl.wasm
 ```
 
-To know when libcurl.js has finished loading, you can use the `libcurl_load` DOM event. 
+To know when libcurl.js has finished loading, you can use the `libcurl_load` DOM event. The `libcurl_abort` event will trigger if the Emscripten runtime gets aborted due to a critical error. The `libcurl.events` object contains an `EventTarget` where these events will also be emitted. 
 ```js
 document.addEventListener("libcurl_load", ()=>{
   libcurl.set_websocket(`wss://${location.hostname}/ws/`);

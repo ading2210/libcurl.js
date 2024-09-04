@@ -89,6 +89,14 @@ function main() {
   }
 }
 
+function abort_callback(reason) {
+  let abort_event = new CustomEvent("libcurl_abort", {detail: reason});
+  api.events.dispatchEvent(abort_event);
+  if (ENVIRONMENT_IS_WEB) {
+    document.dispatchEvent(abort_event);
+  }
+}
+
 function load_wasm(url) {
   if (wasm_ready) return;
 
@@ -99,13 +107,20 @@ function load_wasm(url) {
     run();  
   }
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     if (wasm_ready) return resolve();
-    api.events.addEventListener("libcurl_load", () => {resolve()});
+    api.events.addEventListener("libcurl_load", () => {
+      resolve();
+    }, {once: true});
+    api.events.addEventListener("libcurl_abort", (event) => {
+      reject(event.detail);
+    }, {once: true});
   });
 }
 
 Module.onRuntimeInitialized = main;
+Module.onAbort = abort_callback;
+
 api = {
   set_websocket: set_websocket_url,
   load_wasm: load_wasm,

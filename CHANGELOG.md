@@ -1,5 +1,10 @@
 # Libcurl.js Changelog:
 
+## v0.6.14 (9/4/24):
+- All dependencies have been updated to the latest versions
+- `libcurl.load_wasm` now returns a promise that resolves when the WASM has finished loading
+- Unused protocol support has been disabled in the curl binary, resulting in 100kb binary size savings
+
 ## v0.6.13 (9/1/24):
 - A minor bug where the hostname for TCP connections would be wrong in certain cases has been fixed. 
 

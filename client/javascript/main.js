@@ -77,22 +77,32 @@ function main() {
   wasm_ready = true;
   _init_curl();
 
-  if (ENVIRONMENT_IS_WEB) {
-    let load_event = new Event("libcurl_load");
-    document.dispatchEvent(load_event);
-  }
-
   if (!main_session && websocket_url) {
     setup_main_session();
   }
 
+  let load_event = new Event("libcurl_load");
+  api.events.dispatchEvent(load_event);
   api.onload();
+  if (ENVIRONMENT_IS_WEB) {
+    document.dispatchEvent(load_event);
+  }
 }
 
 function load_wasm(url) {
-  wasmBinaryFile = url;
-  createWasm();
-  run();
+  if (wasm_ready) return;
+
+  //skip this if we are running in single file mode
+  if (!isDataURI(wasmBinaryFile)) {
+    wasmBinaryFile = url;
+    createWasm();
+    run();  
+  }
+
+  return new Promise((resolve) => {
+    if (wasm_ready) return resolve();
+    api.events.addEventListener("libcurl_load", () => {resolve()});
+  });
 }
 
 Module.onRuntimeInitialized = main;
@@ -128,7 +138,8 @@ api = {
   get logger() {return logger},
   set logger(func) {logger = func},
 
-  onload() {}
+  onload() {},
+  events: new EventTarget()
 };
 
 return api;

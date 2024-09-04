@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="icon" href="data:;base64,=">
+
+    <script src="./out/libcurl_full.js"></script>
+    <script>
+      async function main() {
+        console.log("libcurl.js ready?", libcurl.ready);
+        await libcurl.load_wasm();
+        console.log("libcurl.js ready?", libcurl.ready);
+        console.log("loaded libcurl.js", libcurl.version.lib);
+      }
+      main();
+    </script>
+  </head>
+  <body>
+    <p>emscripten tests</p>
+  </body>
+</html>

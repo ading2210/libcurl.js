@@ -42,7 +42,7 @@ This is an experimental port of [libcurl](https://curl.se/libcurl/) to WebAssemb
 - Works inside web workers without needing special permissions or headers
 - Works in all major browsers (Chromium >= 64, Firefox >= 65, Safari >= 14)
 - Has the ability to create multiple independent sessions
-- Small footprint size (800kb after compression) and low runtime memory usage
+- Small footprint size (672KB after compression) and low runtime memory usage
 - Support for Brotli and gzip compressed responses
 
 ## Building:
@@ -73,6 +73,16 @@ To import the library, follow the build instructions in the previous section, an
 ```html
 <script defer src="./out/libcurl.js" onload="libcurl.load_wasm('/out/libcurl.wasm');"></script>
 ```
+
+You may also call and await `libcurl.load_wasm` in your own async code. It returns a promise which resolves once libcurl.js is fully ready. 
+```js
+async function main() {
+  await libcurl.load_wasm("/out/libcurl.wasm");
+  console.log(await libcurl.fetch("https://ading.dev/"));
+}
+main();
+```
+If you are using the single file version (`libcurl_full.js`), the `libcurl.load_wasm` function can still be used to wait for the WASM to load, although the url provided to it has no effect. 
 
 Alternatively, prebuilt versions can be found on NPM and jsDelivr. You can use the following URLs to load libcurl.js from a third party CDN.
 ```

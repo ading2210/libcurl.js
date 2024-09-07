@@ -1,5 +1,8 @@
 # Libcurl.js Changelog:
 
+## v0.6.15 (9/6/24):
+- WolfSSL has been downgraded to v5.6.6 due to an upstream regression
+
 ## v0.6.14 (9/4/24):
 - All dependencies have been updated to the latest versions
 - `libcurl.load_wasm` now returns a promise that resolves when the WASM has finished loading

@@ -96,13 +96,18 @@ class HTTPSession extends CurlSession {
     });
   }
 
-  async fetch(resource, params={}) {
+  async fetch(resource, params_old={}) {
     let url = resource;
+    //shallow copy the original params object
+    let params = Object.fromEntries(Object.entries(params_old));
+
     if (resource instanceof Request) {
       url = resource.url;
-      params.body = params.body || await resource.blob();
       params.headers = params.headers || Object.fromEntries(resource.headers);
       params.method = params.method || resource.method;
+      let resource_body = await resource.arrayBuffer();
+      if (resource_body.byteLength !== 0) 
+        params.body = resource_body;
     }
     else if (typeof url === "string" || url instanceof String) {
       url = (new URL(url, this.base_url)).href;
@@ -169,10 +174,8 @@ class HTTPSession extends CurlSession {
     }
     
     let headers = params.headers || {};
-    if (params.headers instanceof Headers) {
-      for(let [key, value] of headers) {
-        headers[key] = value;
-      }
+    if (headers instanceof Headers) {
+      headers = Object.fromEntries(headers);
     }
     params.headers = new HeadersDict(headers);
 

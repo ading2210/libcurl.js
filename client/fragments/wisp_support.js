@@ -9,7 +9,7 @@ try {
     ws = new WebSocket(url);
   }
   else if (typeof api.transport === "string") {
-    throw "invalid transport type";
+    throw new TypeError("invalid transport type");
   }
   else { //custom transports
     ws = new api.transport(url);

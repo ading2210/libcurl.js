@@ -1,14 +1,11 @@
 {
   "name": "libcurl.js",
-  "version": "0.6.15",
-  "description": "An experimental port of libcurl to WebAssembly for use in the browser.",
+  "version": "0.6.16",
+  "description": "A port of libcurl to WebAssembly, for proxying HTTPS requests from the browser with full TLS encryption",
   "main": "libcurl.mjs",
   "exports": {
     ".": "./libcurl.mjs",
     "./bundled": "./libcurl_full.mjs"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",

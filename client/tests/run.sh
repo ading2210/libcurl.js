@@ -4,7 +4,7 @@ set -e
 
 trap "exit" INT TERM
 trap "kill 0" EXIT
-../server/run.sh --static=$(pwd) >/dev/null &
+../server/run.sh --static=$(pwd) --log-level=WARN >/dev/null &
 
 echo -n "waiting for wisp server to start"
 i=0

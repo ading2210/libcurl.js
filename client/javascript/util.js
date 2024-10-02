@@ -70,7 +70,7 @@ function data_to_array(data) {
     return new Uint8Array(data.buffer);
   }
 
-  throw "invalid data type to be sent";
+  throw new TypeError("invalid data type to be sent");
 }
 
 //c function wrapper

@@ -62,7 +62,7 @@ class FakeWebSocket extends EventTarget {
           converted = data.buffer;
         }
         else {
-          throw "invalid binaryType string";
+          throw new TypeError("invalid binaryType string");
         }
       }
 

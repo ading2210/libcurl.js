@@ -67,13 +67,13 @@ class HTTPSession extends CurlSession {
         }
         if (error > 0) {
           error_msg(`Request "${url}" failed with error code ${error}: ${get_error_str(error)}`);
-          reject(`Request failed with error code ${error}: ${get_error_str(error)}`);
+          reject(new TypeError(`Request failed with error code ${error}: ${get_error_str(error)}`));
         }
         else if (error === -1) {
           reject(new DOMException("The operation was aborted."));
         }
         else if (error === -2) {
-          reject("Request failed because redirects were disallowed.");
+          reject(new TypeError("Request failed because redirects were disallowed."));
         }
         this.remove_request(http_handle);
         http_handle = null;

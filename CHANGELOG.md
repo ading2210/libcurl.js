@@ -1,5 +1,9 @@
 # Libcurl.js Changelog:
 
+## v0.6.16 (10/2/24):
+- Fix a bug with `Headers` objects and `Request` objects not being properly handled when passed into `libcurl.fetch`
+- Errors thrown are now `Error` or `TypeError` objects instead of plain strings
+
 ## v0.6.15 (9/6/24):
 - WolfSSL has been downgraded to v5.6.6 due to an upstream regression
 

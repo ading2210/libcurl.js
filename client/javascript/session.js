@@ -24,7 +24,7 @@ class CurlSession {
 
   assert_ready() {
     if (!this.session_ptr) {
-      throw "session has been removed";
+      throw new Error("session has been removed");
     }
   }
 

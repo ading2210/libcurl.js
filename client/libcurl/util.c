@@ -21,14 +21,10 @@ char* get_version() {
   }
   
   cJSON* curl_version_item = cJSON_CreateString(version_info->version);
-  cJSON* ssl_version_item = cJSON_CreateString(version_info->ssl_version);
   cJSON* brotli_version_item = cJSON_CreateString(version_info->brotli_version);
-  cJSON* nghttp2_version_item = cJSON_CreateString(version_info->nghttp2_version);
   
   cJSON_AddItemToObject(version_json, "curl", curl_version_item);
-  cJSON_AddItemToObject(version_json, "ssl", ssl_version_item);
   cJSON_AddItemToObject(version_json, "brotli", brotli_version_item);
-  cJSON_AddItemToObject(version_json, "nghttp2", nghttp2_version_item);
   cJSON_AddItemToObject(version_json, "protocols", protocols_array);
 
   char* version_json_str = cJSON_Print(version_json);

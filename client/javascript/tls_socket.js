@@ -43,7 +43,7 @@ class TLSSocket extends CurlSession {
       }
     }
 
-    this.http_handle = this.create_request(this.url, data_callback, finish_callback, headers_callback);
+    this.http_handle = this.create_request(this.url, data_callback, finish_callback, headers_callback, true);
     _tls_socket_set_options(this.http_handle, +this.options.verbose);
     if (this.options.proxy) {
       c_func_str(_request_set_proxy, [this.http_handle, this.options.proxy]);

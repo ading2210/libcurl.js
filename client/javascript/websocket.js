@@ -56,7 +56,11 @@ class CurlWebSocket extends CurlSession {
       request_options._libcurl_verbose = 1;
     }
 
-    this.http_handle = this.create_request(this.url, data_callback, finish_callback, headers_callback);
+    let url_obj = new URL(this.url);
+    let tls = url_obj.protocol === "wss:";
+    request_options.headers["Host"] = url_obj.host;
+
+    this.http_handle = this.create_request(this.url, data_callback, finish_callback, headers_callback, tls);
     c_func(_http_set_options, [this.http_handle, JSON.stringify(request_options), null, 0]);
     _websocket_set_options(this.http_handle);
     if (this.options.proxy) {

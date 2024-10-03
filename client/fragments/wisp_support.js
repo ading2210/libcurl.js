@@ -3,6 +3,8 @@ ws ?= ?new WebSocketConstructor\(url, ?opts\)
 */
 try {
   let transport;
+  let tls = url.includes("---tls-enabled---");
+  url = url.replace("---tls-enabled---", "");
   if (api.transport === "wisp") {
     transport = new WispWebSocket(url);
   }
@@ -15,7 +17,13 @@ try {
   else { //custom transports
     transport = new api.transport(url);
   }
-  ws = new tls_shim.ReclaimTLSSocket(url, transport);
+  //
+  if (tls) {
+    ws = new tls_shim.ReclaimTLSSocket(url, transport);
+  }
+  else {
+    ws = transport;
+  }
 }
 catch (e) {
   error_msg("Error while creating a TCP connection: " + e);

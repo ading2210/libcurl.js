@@ -18,6 +18,7 @@ class JSTest(unittest.TestCase):
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-browser-side-navigation")
     options.add_argument("--disable-gpu")
+    options.add_argument("--enable-experimental-web-platform-features")
     options.set_capability("goog:loggingPrefs", {"browser": "ALL"})
 
     try:

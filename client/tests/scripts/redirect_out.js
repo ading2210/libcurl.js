@@ -7,5 +7,5 @@ async function test() {
   libcurl.stderr = out_callback;
   await libcurl.fetch("https://example.com/", {_libcurl_verbose: 1});
   console.log(output);
-  assert(output[0] === "* Host example.com:443 was resolved.", "unexpected output in stderr");
+  assert(output[0].includes("* Host example.com"), "unexpected output in stderr");
 }

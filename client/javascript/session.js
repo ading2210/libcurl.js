@@ -51,13 +51,25 @@ class CurlSession {
     this.request_callbacks[request_id].headers(chunk);
   }
 
-  create_request(url, js_data_callback, js_end_callback, js_headers_callback) {
+  create_request(url, js_data_callback, js_end_callback, js_headers_callback, tls=false) {
     this.assert_ready();
     let request_id = this.last_request_id++;
     this.request_callbacks[request_id] = {
       end: js_end_callback,
       data: js_data_callback,
       headers: js_headers_callback
+    }
+
+    //if tls is enabled, add a flag to the url
+    if (tls) {
+      let url_obj = new URL(url);
+      url_obj.hostname += "---tls-enabled---";
+      if (url_obj.protocol == "https:") url_obj.protocol = "http:";
+      if (url_obj.protocol == "wss:") url_obj.protocol = "ws:";
+      if (!url_obj.port) {
+        url_obj.href = url_obj.href.replace(url_obj.origin, url_obj.origin + ":443");
+      }
+      url = url_obj.href;
     }
   
     let request_ptr = c_func(_create_request, [
@@ -133,7 +145,7 @@ class CurlSession {
   }
 
   //wrap request callbacks using a readable stream and return the new callbacks
-  stream_response(url, headers_callback, end_callback, abort_signal) {
+  stream_response(url, headers_callback, end_callback, abort_signal, tls) {
     let stream_controller;
     let aborted = false;
     let headers_received = false;
@@ -190,6 +202,6 @@ class CurlSession {
       end_callback(error);
     }
 
-    return this.create_request(url, real_data_callback, real_end_callback, () => {});
+    return this.create_request(url, real_data_callback, real_end_callback, () => {}, tls);
   }
 }

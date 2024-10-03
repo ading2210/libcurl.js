@@ -68,9 +68,6 @@ export class ReclaimTLSSocket extends EventTarget {
 
     //set up socket callbacks
     this.socket.binaryType = "arraybuffer";
-    this.socket.onopen = () => {
-      this.tls.startHandshake();
-    }
     this.socket.onmessage = (event) => {
       this.tls.handleReceivedBytes(new Uint8Array(event.data));
     }
@@ -81,6 +78,14 @@ export class ReclaimTLSSocket extends EventTarget {
     this.socket.onerror = () => {
       this.status = this.CLOSED;
       this.emit_event(new Event("error"));
+    }
+    if (this.socket.readyState === this.socket.CONNECTING) {
+      this.socket.onopen = () => {
+        this.tls.startHandshake();
+      }  
+    }
+    else {
+      this.tls.startHandshake();
     }
     this.status = this.CONNECTING;
   }

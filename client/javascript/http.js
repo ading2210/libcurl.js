@@ -78,12 +78,16 @@ class HTTPSession extends CurlSession {
         this.remove_request(http_handle);
         http_handle = null;
       }
+
+      let url_obj = new URL(url);
+      let tls = url_obj.protocol === "https:";
+      params.headers["Host"] = url_obj.host;
       
       body_ptr = body ? allocate_array(body) : null;
       let body_length = body ? body.length : 0;
       let params_json = JSON.stringify(params);
-      
-      http_handle = this.stream_response(url, headers_callback, finish_callback, params.signal);
+
+      http_handle = this.stream_response(url, headers_callback, finish_callback, params.signal, tls);
       c_func(_http_set_options, [http_handle, params_json, body_ptr, body_length]);
       if (this.cookie_filename && params.credentials !== "omit") {
         c_func(_http_set_cookie_jar, [http_handle, this.cookie_filename]);
@@ -124,8 +128,21 @@ class HTTPSession extends CurlSession {
     }
     check_proxy(params.proxy);
 
+    let redirect_mode = params.redirect;
     let body = await this.constructor.create_options(params);
-    return await this.request_async(url, params, body);
+    params.redirect = "manual";
+    if (redirect_mode === "manual")
+      return await this.request_async(url, params, body);
+    
+    for (let i = 0; i < 20; i++) {
+      let r = await this.request_async(url, params, body);
+      if (r.status !== 201 && (r.status+"")[0] !== "3") 
+        return r;
+      if (redirect_mode === "error") 
+        throw new Error("Too many redirects");
+      url = new URL(r.headers.get("location"), url).href;
+    }
+    throw new Error("Too many redirects");
   }
 
   static create_response(response_data, response_info) {
@@ -133,6 +150,13 @@ class HTTPSession extends CurlSession {
     response_info.statusText = status_messages[response_info.status] || "";
     if (response_info.status === 204 || response_info.status === 205) {
       response_data = null;
+    }
+    if (response_info.url.includes("---tls-enabled---")) {
+      let url_obj = new URL(response_info.url);
+      url_obj.hostname = url_obj.hostname.replace("---tls-enabled---", "");
+      url_obj.protocol = "https:";
+      if (url_obj.port === "443") url_obj.port = "";
+      response_info.url = url_obj.href;
     }
 
     //construct base response object

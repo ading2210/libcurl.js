@@ -154,7 +154,8 @@ api = {
   set logger(func) {logger = func},
 
   onload() {},
-  events: new EventTarget()
+  events: new EventTarget(),
+  tls_shim: tls_shim
 };
 
 return api;

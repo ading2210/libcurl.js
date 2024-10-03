@@ -4,3 +4,4 @@
 /server/.venv
 
 node_modules
+dist

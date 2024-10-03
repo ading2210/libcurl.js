@@ -1,6 +1,6 @@
 {
-  "name": "libcurl.js",
-  "version": "0.6.16",
+  "name": "libcurl.js-reclaimtls",
+  "version": "0.6.16-reclaimtls",
   "description": "A port of libcurl to WebAssembly, for proxying HTTPS requests from the browser with full TLS encryption",
   "main": "libcurl.mjs",
   "exports": {
@@ -16,5 +16,12 @@
   "bugs": {
     "url": "https://github.com/ading2210/libcurl.js/issues"
   },
-  "homepage": "https://github.com/ading2210/libcurl.js"
+  "homepage": "https://github.com/ading2210/libcurl.js",
+  "dependencies": {
+    "@reclaimprotocol/tls": "^0.0.2"
+  },
+  "devDependencies": {
+    "webpack": "^5.95.0"
+  },
+  "sideEffects": false
 }

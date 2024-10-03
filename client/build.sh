@@ -77,6 +77,14 @@ echo $COMPILE_CMD
 $COMPILE_CMD
 mv $COMPILED_FILE $WASM_FILE || true
 
+#build tls shim
+echo "bundling tls shim"
+if [[ "$*" == *"release"* ]]; then
+  npx webpack --mode=production
+else
+  npx webpack
+fi
+
 #merge compiled emscripten module and wrapper code
 cp $JAVSCRIPT_DIR/main.js $OUT_FILE
 sed -i "/__emscripten_output__/r $MODULE_FILE" $OUT_FILE
@@ -89,7 +97,6 @@ VERSION=$(cat package.json | jq -r '.version')
 sed -i "s/__library_version__/$VERSION/" $OUT_FILE
 WISP_VERSION=$(cat $WISP_CLIENT/package.json | jq -r '.version')
 sed -i "s/__wisp_version__/$WISP_VERSION/" $OUT_FILE
-
 
 #js files are inserted in reverse order
 sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/ftp.js" $OUT_FILE
@@ -107,6 +114,7 @@ sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/logger.js" $OUT_FILE
 sed -i "/__extra_libraries__/r $WISP_CLIENT/polyfill.js" $OUT_FILE
 sed -i "/__extra_libraries__/r $WISP_CLIENT/wisp.js" $OUT_FILE
 
+sed -i "/__extra_libraries__/r dist/tls-shim.js" $OUT_FILE
 
 #apply patches
 python3 tools/patch_js.py $FRAGMENTS_DIR $OUT_FILE

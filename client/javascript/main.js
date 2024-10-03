@@ -65,7 +65,7 @@ function get_version() {
 }
 
 function get_cacert() {
-  return UTF8ToString(_get_cacert());
+  return ":(";
 }
 
 function setup_main_session() {

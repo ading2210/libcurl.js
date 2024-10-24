@@ -86,8 +86,8 @@ If you are using the single file version (`libcurl_full.js`), the `libcurl.load_
 
 Alternatively, prebuilt versions can be found on NPM and jsDelivr. You can use the [following URLs](https://cdn.jsdelivr.net/npm/libcurl.js@latest/) to load libcurl.js from a third party CDN.
 ```
-https://cdn.jsdelivr.net/npm/libcurl.js@latest/libcurl.js
-https://cdn.jsdelivr.net/npm/libcurl.js@latest/libcurl.wasm
+https://cdn.jsdelivr.net/npm/libcurl.js@0.6.7/libcurl.js
+https://cdn.jsdelivr.net/npm/libcurl.js@0.6.7/libcurl.wasm
 ```
 
 To know when libcurl.js has finished loading, you can use the `libcurl_load` DOM event. The `libcurl_abort` event will trigger if the Emscripten runtime gets aborted due to a critical error. The `libcurl.events` object contains an `EventTarget` where these events will also be emitted. 
@@ -131,9 +131,9 @@ Most of the standard Fetch API's features are supported, with the exception of:
 
 Sending cookies is supported, but they will not be automatically sent unless you create a new HTTP session, which is covered in the next section.
 
-The response may contain multiple HTTP headers with the same name, which the `Headers` object isn't able to properly represent. If this matters to you, use `response.raw_headers`, which is an array of key value pairs, instead of `response.headers`. There is support for streaming the response body using a `ReadableStream`, as well as canceling requests using an `AbortSignal`. All requests made using this method share the same connection pool, which has a limit of 50 active TCP connections.
+The response may contain multiple HTTP headers with the same name, which the `Headers` object isn't able to properly represent. If this matters to you, use `response.raw_headers`, which is an array of key value pairs, instead of `response.headers`. There is support for streaming the response body using a `ReadableStream`, as well as canceling requests using an `AbortSignal`. All requests made using this method share the same connection pool, which has a limit of 50 active TCP connections (configurable if you use a separate HTTP session).
 
-The `proxy` option may be used to specify the URL of a `socks5h`, `socks4a`, or `http` proxy server. For example `proxy: "socks5h://127.0.0.0:1080"` will set the proxy server for just the current request.
+The `proxy` option may be used to specify the URL of a `socks5h`, `socks4a`, or `http` proxy server. For example `proxy: "socks5h://127.0.0.0:1080"` will set the proxy server for just the current request. This proxy option is separate from the global websocket proxy.
 
 ### Creating New HTTP Sessions:
 To create new sessions for HTTP requests, use the `libcurl.HTTPSession` class. The constructor for this class takes the following arguments:
@@ -146,7 +146,7 @@ The valid HTTP session settings are:
 
 Each HTTP session has the following methods available:
 - `fetch` - Identical to the `libcurl.fetch` function but only creates connections in this session.
-- `set_connections` - Set the connection limits. This takes three arguments: the first [is the hard limit of active connections](https://curl.se/libcurl/c/CURLMOPT_MAX_TOTAL_CONNECTIONS.html) (default 60), the second is limit for the connection cache (default 50), and the third is the [max connections per host](https://curl.se/libcurl/c/CURLMOPT_MAXCONNECTS.html) (default 6).
+- `set_connections` - Set the connection limits. This takes three arguments: the first [is the hard limit of active connections](https://curl.se/libcurl/c/CURLMOPT_MAX_TOTAL_CONNECTIONS.html) (default 60), the second is [limit for the connection cache](https://curl.se/libcurl/c/CURLMOPT_MAXCONNECTS.html) (default 50), and the third is the [max connections per host](https://curl.se/libcurl/c/CURLMOPT_MAX_HOST_CONNECTIONS.html) (default 6).
 - `export_cookies` - Export any cookies which were recorded in the session. This will return an empty string if cookies are disabled or no cookies have been set yet. 
 - `close` - Close all connections and clean up the session. You must call this after you are done using the session, otherwise it will leak memory. 
 
@@ -246,6 +246,8 @@ libcurl.set_websocket("ws://localhost:6001/");
 ```
 If the websocket proxy URL is not set and one of the other API functions is called, an error will be thrown. Note that this URL must end with a trailing slash.
 
+Changing the websocket proxy URL will not close any existing connections.
+
 ### Getting Libcurl's Output:
 If you want more information about a connection, you can pass the `_libcurl_verbose` argument to the `libcurl.fetch` function. These are the same messages that you would see if you ran `curl -v` on the command line.
 ```js
@@ -278,7 +280,7 @@ You can get version information from the `libcurl.version` object. This object w
 You can get the CA cert bundle that libcurl uses by calling `libcurl.get_cacert`. The function will return a string with the certificates in PEM format. The cert bundle comes from the [official curl website](https://curl.se/docs/caextract.html), which is extracted from the Mozilla Firefox source code. 
 
 ### Using the Wisp Client
-The `libcurl.wisp` object exposes all of the APIs from [wisp-client-js](https://github.com/MercuryWorkshop/wisp-client-js). This API is not guarenteed to be reliable. 
+The `libcurl.wisp` object exposes all of the APIs from [wisp-client-js](https://github.com/MercuryWorkshop/wisp-client-js). This API is not guaranteed to be stable. 
 
 ## Proxy Server:
 The proxy server consists of a standard [Wisp](https://github.com/MercuryWorkshop/wisp-protocol) server, allowing multiple TCP connections to share the same websocket.

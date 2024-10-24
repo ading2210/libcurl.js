@@ -12,11 +12,11 @@ mkdir -p $PREFIX
 
 cd build
 rm -rf wolfssl
-git clone -b v5.6.6-stable --depth=1 https://github.com/wolfSSL/wolfssl wolfssl
+git clone -b v5.7.2-stable --depth=1 https://github.com/wolfSSL/wolfssl wolfssl
 cd wolfssl
 
 autoreconf -fi
-export CFLAGS="-Oz -DSP_WORD_SIZE=32 -DWOLFSSL_NO_ATOMICS -DWOLFSSL_TICKET_NONCE_MALLOC" 
+export CFLAGS="-Oz -DSP_WORD_SIZE=32 -DWOLFSSL_NO_ATOMICS -DWOLFSSL_MAX_ALT_NAMES=1024" 
 emconfigure ./configure --prefix=$PREFIX --enable-curl --enable-static --disable-shared --host=i686-linux --disable-examples --disable-asm --enable-sni --enable-alpn --enable-truncatedhmac --enable-oldtls --enable-tlsv12 --enable-all-crypto --disable-asyncthreads --disable-threadlocal --enable-tlsx 
 emmake make -j$CORE_COUNT
 make install

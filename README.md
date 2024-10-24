@@ -146,7 +146,7 @@ The valid HTTP session settings are:
 
 Each HTTP session has the following methods available:
 - `fetch` - Identical to the `libcurl.fetch` function but only creates connections in this session.
-- `set_connections` - Set the connection limits. This takes two arguments, the first being the limit for the connection cache, and the second being the max number of active connections.
+- `set_connections` - Set the connection limits. This takes three arguments: the first [is the hard limit of active connections](https://curl.se/libcurl/c/CURLMOPT_MAX_TOTAL_CONNECTIONS.html) (default 60), the second is limit for the connection cache (default 50), and the third is the [max connections per host](https://curl.se/libcurl/c/CURLMOPT_MAXCONNECTS.html) (default 6).
 - `export_cookies` - Export any cookies which were recorded in the session. This will return an empty string if cookies are disabled or no cookies have been set yet. 
 - `close` - Close all connections and clean up the session. You must call this after you are done using the session, otherwise it will leak memory. 
 

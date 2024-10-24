@@ -4,7 +4,7 @@ class HTTPSession extends CurlSession {
     this.options = options;
     this.base_url = undefined;
 
-    this.set_connections(50, 40);
+    this.set_connections(50, 40, 6);
     this.import_cookies();
   }
 

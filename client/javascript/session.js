@@ -28,9 +28,9 @@ class CurlSession {
     }
   }
 
-  set_connections(connections_limit, cache_limit) {
+  set_connections(connections_limit, cache_limit, host_conn_limit=0) {
     this.assert_ready();
-    _session_set_options(this.session_ptr, connections_limit, cache_limit);
+    _session_set_options(this.session_ptr, connections_limit, cache_limit, host_conn_limit);
   }
 
   end_callback(request_id, error) {

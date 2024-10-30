@@ -311,7 +311,7 @@ This project is licensed under the GNU AGPL v3.
 ### Copyright Notice:
 ```
 ading2210/libcurl.js - A port of libcurl to WASM for use in the browser.
-Copyright (C) 2023 ading2210
+Copyright (C) 2024 ading2210
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by

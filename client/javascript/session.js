@@ -123,7 +123,7 @@ class CurlSession {
     }
     _session_cleanup(this.session_ptr);
     this.session_ptr = null;
-    ws_events.removeEventListener(this.ws_event_listener);
+    ws_events.removeEventListener("message", this.ws_event_listener);
     Module.removeFunction(this.end_callback_ptr);
     Module.removeFunction(this.headers_callback_ptr);
     Module.removeFunction(this.data_callback_ptr);

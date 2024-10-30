@@ -43,7 +43,8 @@ CURL* create_request(const char* url, int request_id, DataCallback data_callback
 
   curl_easy_setopt(http_handle, CURLOPT_PRIVATE, request_info);
   curl_easy_setopt(http_handle, CURLOPT_URL, url);
-  curl_easy_setopt(http_handle, CURLOPT_CAINFO_BLOB , cacert_blob);
+  curl_easy_setopt(http_handle, CURLOPT_CAINFO_BLOB, cacert_blob);
+  curl_easy_setopt(http_handle, CURLOPT_BUFFERSIZE, 512*1024);
 
   //callbacks to pass the response data back to js
   curl_easy_setopt(http_handle, CURLOPT_WRITEFUNCTION, &write_function);

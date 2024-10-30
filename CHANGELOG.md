@@ -1,6 +1,9 @@
 # Libcurl.js Changelog:
 
-## v0.6.17 (10/2/24):
+## v0.6.18 (10/29/24):
+- Improve download speeds by increasing libcurl's internal buffer size and listening directly for websocket messages
+
+## v0.6.17 (10/24/24):
 - Enable a per host connection limit. This defaults to 6, which is the same as most web browsers.
 - Use the latest WolfSSL again and compile with workarounds
 - Upgrade to curl 8.10.1

@@ -20,6 +20,9 @@ class CurlSession {
     }, "viii");
     this.request_callbacks = {};
     this.last_request_id = 0;
+
+    this.ws_event_listener = () => {this.event_loop_func()};
+    ws_events.addEventListener("message", this.ws_event_listener);
   }
 
   assert_ready() {
@@ -97,7 +100,7 @@ class CurlSession {
     if (this.event_loop) {
       return;
     }
-    
+
     this.event_loop = setInterval(() => {
       this.event_loop_func();
     }, 0);
@@ -108,7 +111,7 @@ class CurlSession {
     if (libcurl_active || this.active_requests) {
       _session_perform(this.session_ptr);
     }
-    else {
+    else if (this.event_loop) {
       clearInterval(this.event_loop);
       this.event_loop = null;
     }
@@ -120,6 +123,7 @@ class CurlSession {
     }
     _session_cleanup(this.session_ptr);
     this.session_ptr = null;
+    ws_events.removeEventListener(this.ws_event_listener);
     Module.removeFunction(this.end_callback_ptr);
     Module.removeFunction(this.headers_callback_ptr);
     Module.removeFunction(this.data_callback_ptr);

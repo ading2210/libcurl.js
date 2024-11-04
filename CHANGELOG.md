@@ -1,5 +1,9 @@
 # Libcurl.js Changelog:
 
+## v0.6.19 (11/1/24):
+- Improve download speeds even more by reducing memory copies 
+- Fix wrong mime type being reported in response blob
+
 ## v0.6.18 (10/29/24):
 - Improve download speeds by increasing libcurl's internal buffer size and listening directly for websocket messages
 

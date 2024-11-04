@@ -1,5 +1,17 @@
 # Libcurl.js Changelog:
 
+## v0.6.19 (11/1/24):
+- Improve download speeds even more by reducing memory copies 
+- Fix wrong mime type being reported in response blob
+
+## v0.6.18 (10/29/24):
+- Improve download speeds by increasing libcurl's internal buffer size and listening directly for websocket messages
+
+## v0.6.17 (10/24/24):
+- Enable a per host connection limit. This defaults to 6, which is the same as most web browsers.
+- Use the latest WolfSSL again and compile with workarounds
+- Upgrade to curl 8.10.1
+
 ## v0.6.16 (10/2/24):
 - Fix a bug with `Headers` objects and `Request` objects not being properly handled when passed into `libcurl.fetch`
 - Errors thrown are now `Error` or `TypeError` objects instead of plain strings

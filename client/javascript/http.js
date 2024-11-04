@@ -4,7 +4,7 @@ class HTTPSession extends CurlSession {
     this.options = options;
     this.base_url = undefined;
 
-    this.set_connections(50, 40);
+    this.set_connections(50, 40, 6);
     this.import_cookies();
   }
 
@@ -180,6 +180,17 @@ class HTTPSession extends CurlSession {
     });
     for (let [header_name, header_value] of response_info.headers) {
       response_obj.headers.append(header_name, header_value);
+    }
+
+    //hack to fix invalid blob type
+    let response_proto = Object.getPrototypeOf(response_obj);
+    response_obj.blob = async () => {
+      let blob = await response_proto.blob.call(response_obj);
+      let mime_type = blob.type.split(";")[0].trim();
+      Object.defineProperty(blob, "type", {
+        value: mime_type
+      });
+      return blob;
     }
     
     return response_obj;

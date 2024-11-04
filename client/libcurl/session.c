@@ -27,9 +27,10 @@ void session_perform(struct SessionInfo *session) {
   }
 }
 
-void session_set_options(struct SessionInfo *session, int connections_limit, int cache_limit) {
+void session_set_options(struct SessionInfo *session, int connections_limit, int cache_limit, int host_conn_limit) {
   curl_multi_setopt(session->multi_handle, CURLMOPT_MAX_TOTAL_CONNECTIONS, connections_limit);
   curl_multi_setopt(session->multi_handle, CURLMOPT_MAXCONNECTS, cache_limit);
+  curl_multi_setopt(session->multi_handle, CURLMOPT_MAX_HOST_CONNECTIONS, host_conn_limit);
 }
 
 void session_add_request(struct SessionInfo *session, CURL* http_handle) {

@@ -28,9 +28,9 @@ class CurlSession {
     }
   }
 
-  set_connections(connections_limit, cache_limit) {
+  set_connections(connections_limit, cache_limit, host_conn_limit=0) {
     this.assert_ready();
-    _session_set_options(this.session_ptr, connections_limit, cache_limit);
+    _session_set_options(this.session_ptr, connections_limit, cache_limit, host_conn_limit);
   }
 
   end_callback(request_id, error) {
@@ -41,8 +41,7 @@ class CurlSession {
 
   data_callback(request_id, chunk_ptr, chunk_size) {
     let data = Module.HEAPU8.subarray(chunk_ptr, chunk_ptr + chunk_size);
-    let chunk = new Uint8Array(data);
-    this.request_callbacks[request_id].data(chunk);
+    this.request_callbacks[request_id].data(data);
   }
 
   headers_callback(request_id, chunk_ptr, chunk_size) {

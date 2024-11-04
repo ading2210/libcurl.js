@@ -18,7 +18,9 @@ jobs:
       
       - name: run build
         working-directory: ./client
-        run: ./build.sh all
+        run: |
+          npm i
+          ./build.sh all
 
       - name: upload img
         uses: actions/upload-artifact@v4

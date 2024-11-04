@@ -30,8 +30,6 @@ var wasm_ready = false;
 var version_dict = null;
 var api = null;
 var main_session = null;
-const ws_events = new EventTarget();
-
 const libcurl_version = "__library_version__";
 const wisp_version = "__wisp_version__";
 

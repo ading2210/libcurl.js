@@ -41,7 +41,8 @@ class CurlSession {
 
   data_callback(request_id, chunk_ptr, chunk_size) {
     let data = Module.HEAPU8.subarray(chunk_ptr, chunk_ptr + chunk_size);
-    this.request_callbacks[request_id].data(data);
+    let chunk = new Uint8Array(data);
+    this.request_callbacks[request_id].data(chunk);
   }
 
   headers_callback(request_id, chunk_ptr, chunk_size) {

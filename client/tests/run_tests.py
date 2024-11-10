@@ -64,6 +64,9 @@ class JSTest(unittest.TestCase):
 
   def test_post(self):
     self.run_test("test_post.js")
+  
+  def test_download_hash(self):
+    self.run_test("test_download_hash.js")
 
 if __name__ == "__main__":
   unittest.main()

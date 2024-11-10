@@ -86,8 +86,8 @@ If you are using the single file version (`libcurl_full.js`), the `libcurl.load_
 
 Alternatively, prebuilt versions can be found on NPM and jsDelivr. You can use the [following URLs](https://cdn.jsdelivr.net/npm/libcurl.js@latest/) to load libcurl.js from a third party CDN.
 ```
-https://cdn.jsdelivr.net/npm/libcurl.js@0.6.7/libcurl.js
-https://cdn.jsdelivr.net/npm/libcurl.js@0.6.7/libcurl.wasm
+https://cdn.jsdelivr.net/npm/libcurl.js@0.6.20/libcurl.js
+https://cdn.jsdelivr.net/npm/libcurl.js@0.6.20/libcurl.wasm
 ```
 
 To know when libcurl.js has finished loading, you can use the `libcurl_load` DOM event. The `libcurl_abort` event will trigger if the Emscripten runtime gets aborted due to a critical error. The `libcurl.events` object contains an `EventTarget` where these events will also be emitted. 

@@ -1,5 +1,8 @@
 # Libcurl.js Changelog:
 
+## v0.6.20 (11/10/24):
+- Fix bug with response body getting corrupted
+
 ## v0.6.19 (11/1/24):
 - Improve download speeds even more by reducing memory copies 
 - Fix wrong mime type being reported in response blob

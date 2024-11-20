@@ -18,6 +18,16 @@ MODULE_FILE="$OUT_DIR/emscripten_compiled.js"
 COMPILED_FILE="$OUT_DIR/emscripten_compiled.wasm"
 WASM_FILE="$OUT_DIR/libcurl.wasm"
 
+#check last used emscripten version
+CURRENT_EMCC_VER="$(emcc --version)"
+LAST_EMCC_VER="$(cat "$BUILD_DIR/emcc_version.txt" || emcc --version)"
+if [ ! "$CURRENT_EMCC_VER" = "$LAST_EMCC_VER" ]; then
+  echo "triggering a full rebuild since we're on a different emcc version"
+  rm -rf "$BUILD_DIR"
+  mkdir -p "$BUILD_DIR"
+fi
+emcc --version > "$BUILD_DIR/emcc_version.txt"
+
 #read exported functions
 EXPORTED_FUNCS=""
 for func in $(cat exported_funcs.txt); do

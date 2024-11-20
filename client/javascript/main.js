@@ -45,6 +45,8 @@ function set_websocket_url(url) {
   websocket_url = url;
   if (typeof Module.websocket === "undefined") 
     Module.websocket = {};
+  if (typeof SOCKFS.websocketArgs !== "undefined") 
+    SOCKFS.websocketArgs.url = url;
   Module.websocket.url = url;
   if (!main_session && wasm_ready) {
     setup_main_session();
@@ -101,7 +103,7 @@ function load_wasm(url) {
   if (wasm_ready) return;
 
   //skip this if we are running in single file mode
-  if (!isDataURI(wasmBinaryFile)) {
+  if (!wasmBinaryFile || !isDataURI(wasmBinaryFile)) {
     wasmBinaryFile = url;
     createWasm();
     run();  

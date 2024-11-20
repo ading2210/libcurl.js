@@ -8,7 +8,7 @@ BUILD_DIR="build"
 C_DIR="libcurl"
 FRAGMENTS_DIR="fragments"
 JAVSCRIPT_DIR="javascript"
-WISP_CLIENT="wisp_client"
+WISP_CLIENT="$BUILD_DIR/wisp-js/package"
 
 INCLUDE_DIR="$BUILD_DIR/curl-wasm/include/"
 LIB_DIR="$BUILD_DIR/curl-wasm/lib/"
@@ -70,6 +70,7 @@ fi
 #ensure deps are compiled
 tools/all_deps.sh
 tools/generate_cert.sh
+tools/wisp_client.sh
 
 #compile the main c file
 COMPILE_CMD="emcc $C_DIR/*.c $COMPILER_OPTIONS $EMSCRIPTEN_OPTIONS"
@@ -104,9 +105,7 @@ sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/messages.js" $OUT_FILE
 sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/util.js" $OUT_FILE
 sed -i "/__extra_libraries__/r $JAVSCRIPT_DIR/logger.js" $OUT_FILE
 
-sed -i "/__extra_libraries__/r $WISP_CLIENT/polyfill.js" $OUT_FILE
-sed -i "/__extra_libraries__/r $WISP_CLIENT/wisp.js" $OUT_FILE
-
+sed -i "/__extra_libraries__/r $WISP_CLIENT/dist/wisp-client.js" $OUT_FILE
 
 #apply patches
 python3 tools/patch_js.py $FRAGMENTS_DIR $OUT_FILE

@@ -1,6 +1,6 @@
 {
   "name": "libcurl.js",
-  "version": "0.6.20",
+  "version": "0.6.21",
   "description": "A port of libcurl to WebAssembly, for proxying HTTPS requests from the browser with full TLS encryption",
   "main": "libcurl.mjs",
   "exports": {

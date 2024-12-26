@@ -130,9 +130,9 @@ api = {
   get_error_string: get_error_str,
 
   wisp: {
-    wisp_connections: wisp_client.client._wisp_connections,
-    WispConnection: wisp_client.client.ClientConnection,
-    WispWebSocket: wisp_client.client.WispWebSocket
+    wisp_connections: _wisp_connections,
+    WispConnection: WispConnection,
+    WispWebSocket: WispWebSocket  
   },
 
   transport: "wisp",

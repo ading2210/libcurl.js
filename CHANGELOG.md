@@ -1,5 +1,12 @@
 # Libcurl.js Changelog:
 
+## v0.6.22 (1/10/25):
+- Remove Emscripten's maximum socket limit of 64 
+- Fix handling of sub-protocols in Websockets
+
+## v0.6.21 (12/25/24):
+- Work around a [WolfSSL bug](https://github.com/wolfSSL/wolfssl/issues/8137) causing requests to open.spotify.com to fail 
+
 ## v0.6.20 (11/10/24):
 - Fix bug with response body getting corrupted
 

@@ -50,6 +50,8 @@ class CurlWebSocket extends CurlSession {
       headers: this.options.headers || {}
     };
     if (this.protocols) {
+      if (typeof this.protocols === "string")
+        this.protocols = [this.protocols];
       request_options.headers["Sec-Websocket-Protocol"] = this.protocols.join(", ");
     }
     if (this.options.verbose) {

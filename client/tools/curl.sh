@@ -14,7 +14,7 @@ NGHTTP2_PREFIX=$(realpath build/nghttp2-wasm)
 
 cd build
 rm -rf curl
-git clone -b curl-8_10_1 --depth=1 https://github.com/curl/curl
+git clone -b curl-8_11_1 --depth=1 https://github.com/curl/curl
 cd curl
 
 autoreconf -fi

@@ -111,14 +111,12 @@ class CurlWebSocket extends CurlSession {
   }
 
   cleanup(error=0) {
-    if (this.http_handle) {
-      this.remove_request(this.http_handle);
-      this.http_handle = null;
-      super.close();
-    }
-    else return;
-
-    clearInterval(this.recv_loop);
+    if (!this.connected)
+      return;
+    if (this.recv_loop) 
+      clearInterval(this.recv_loop);
+    
+    super.close();
     this.connected = false;
 
     if (error) {

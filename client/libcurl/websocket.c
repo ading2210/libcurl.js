@@ -18,9 +18,17 @@ struct WSResult* recv_from_websocket(CURL* http_handle, int buffer_size) {
   result->buffer_size = result_len;
   result->buffer = buffer;
   result->res = (int) res;
-  result->closed = (ws_meta->flags & CURLWS_CLOSE);
-  result->is_text = (ws_meta->flags & CURLWS_TEXT);
-  result->bytes_left = ws_meta->bytesleft;
+  //ws_meta will be null if the recv is not successful, so don't try reading it otherwise
+  if (res == CURLE_OK) {
+    result->closed = (ws_meta->flags & CURLWS_CLOSE);
+    result->is_text = (ws_meta->flags & CURLWS_TEXT);
+    result->bytes_left = ws_meta->bytesleft;
+  }
+  else {
+    result->closed = -1;
+    result->is_text = -1;
+    result->bytes_left = -1;
+  }
   return result;
 }
 

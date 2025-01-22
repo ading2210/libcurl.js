@@ -7,7 +7,7 @@ set -e
 
 CORE_COUNT=$(nproc --all)
 PREFIX=$(realpath build/curl-wasm)
-WOLFSSL_PREFIX=$(realpath build/wolfssl-wasm)
+MBEDTLS_PREFIX=$(realpath build/mbedtls-wasm)
 ZLIB_PREFIX=$(realpath build/zlib-wasm)
 BROTLI_PREFIX=$(realpath build/brotli-wasm)
 NGHTTP2_PREFIX=$(realpath build/nghttp2-wasm)
@@ -24,7 +24,7 @@ emconfigure ./configure --host i686-linux \
   --enable-websockets --disable-ftp --disable-file --disable-gopher \
   --disable-imap --disable-mqtt --disable-pop3 --disable-rtsp \
   --disable-smb --disable-smtp --disable-telnet --disable-dict \
-  --with-wolfssl=$WOLFSSL_PREFIX --with-zlib=$ZLIB_PREFIX \
+  --with-mbedtls=$MBEDTLS_PREFIX --with-zlib=$ZLIB_PREFIX \
   --with-brotli=$BROTLI_PREFIX --with-nghttp2=$NGHTTP2_PREFIX
 
 emmake make -j$CORE_COUNT CFLAGS="-Oz" LIBS="-lbrotlicommon"

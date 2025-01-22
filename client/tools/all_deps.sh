@@ -5,15 +5,15 @@
 set -e
 mkdir -p build
 
-WOLFSSL_PREFIX=$(realpath build/wolfssl-wasm)
+MBEDTLS_PREFIX=$(realpath build/mbedtls-wasm)
 CJSON_PREFIX=$(realpath build/cjson-wasm)
 CURL_PREFIX=$(realpath build/curl-wasm)
 ZLIB_PREFIX=$(realpath build/zlib-wasm)
 BROTLI_PREFIX=$(realpath build/brotli-wasm)
 NGHTTP2_PREFIX=$(realpath build/nghttp2-wasm)
 
-if [ ! -d $WOLFSSL_PREFIX ]; then
-  tools/wolfssl.sh
+if [ ! -d $MBEDTLS_PREFIX ]; then
+  tools/mbedtls.sh
 fi
 if [ ! -d $CJSON_PREFIX ]; then
   tools/cjson.sh
@@ -31,7 +31,7 @@ if [ ! -d $CURL_PREFIX ]; then
   tools/curl.sh
 fi
 
-cp -r $WOLFSSL_PREFIX/* $CURL_PREFIX
+cp -r $MBEDTLS_PREFIX/* $CURL_PREFIX
 cp -r $CJSON_PREFIX/* $CURL_PREFIX
 cp -r $ZLIB_PREFIX/* $CURL_PREFIX
 cp -r $BROTLI_PREFIX/* $CURL_PREFIX

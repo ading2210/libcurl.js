@@ -12,7 +12,7 @@
     "url": "git+https://github.com/ading2210/libcurl.js.git"
   },
   "author": "ading2210",
-  "license": "AGPL-3.0-or-later",
+  "license": "LGPL-3.0-or-later",
   "bugs": {
     "url": "https://github.com/ading2210/libcurl.js/issues"
   },

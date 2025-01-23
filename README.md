@@ -25,7 +25,6 @@ This is a port of [libcurl](https://curl.se/libcurl/) to WebAssembly for use in 
 - [Proxy Server](#proxy-server)
 - [Project Structure](#project-structure)
 - [Copyright](#copyright)
-  * [Copyright Notice](#copyright-notice)
 
 <small>Table of contents generated with [markdown-toc](http://ecotrust-canada.github.io/markdown-toc/).</small>
 
@@ -307,23 +306,10 @@ For a full list of server arguments, see the [wisp-server-python documentation](
   - `wisp_server` - A submodule for the Python Wisp server.
 
 ## Copyright:
-This project is licensed under the GNU AGPL v3.
+This project is licensed under the [GNU LGPL v3](https://www.gnu.org/licenses/lgpl-3.0.html).
 
-### Copyright Notice:
-```
-ading2210/libcurl.js - A port of libcurl to WASM for use in the browser.
-Copyright (C) 2024 ading2210
+> This license is mainly applied to libraries. You may copy, distribute and modify the software provided that modifications are described and licensed for free under LGPL. Derivatives works (including modifications or anything statically linked to the library) can only be redistributed under LGPL, but applications that use the library don't have to be.
+> 
+> \- From [tldrlegal.com](https://www.tldrlegal.com/license/gnu-lesser-general-public-license-v3-lgpl-3)
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
-```
+Do note that the code present in the Wisp server submodule is a seperate project and is still licensed under the GNU AGPL v3. The server-related code in this repository is just a wrapper to run the Wisp server.

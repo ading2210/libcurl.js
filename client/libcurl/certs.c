@@ -23,18 +23,18 @@ void generate_pem() {
 
   //calculate total length of the pem file
   cacert_pem_len = 0;
-  for (int i = 0; i < cert_count; i++) {
-    int cert_len = cert_lengths[i];
+  for (int i = 0; i < _cert_count; i++) {
+    int cert_len = _cert_lengths[i];
     int b64_len = ((4 * cert_len / 3) + 3) & ~3;
     cacert_pem_len += begin_cert_len + end_cert_len + b64_len;
   }
-  cacert_pem = malloc(cacert_pem_len);
+  cacert_pem = malloc(cacert_pem_len + 1);
 
   //loop for base64 encoding each part
   int offset = 0;
-  for (int i = 0; i < cert_count; i++) {
+  for (int i = 0; i < _cert_count; i++) {
     unsigned char* cert = _certs[i];
-    int cert_len = cert_lengths[i];
+    int cert_len = _cert_lengths[i];
     int b64_len = ((4 * cert_len / 3) + 3) & ~3;
     
     strcpy((char*) (cacert_pem + offset), begin_cert_str);

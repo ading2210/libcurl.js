@@ -1,7 +1,6 @@
 import sys
 import base64
 import re
-import hashlib
 
 with open(sys.argv[1]) as f:
   pem_file = f.read()
@@ -13,15 +12,14 @@ certs_b64 = [s.replace("\n", "") for s in certs_b64]
 
 certs_str = "\n".join(cert_template.format(b64=s) for s in certs_b64)
 total_len = len(certs_str)
-print(hashlib.sha256(certs_str.encode()).hexdigest(), file=sys.stderr)
 
 header_part_template = """
 static uint8_t _cert_{num}[] = {array};
 """
 header_end_template = """
 uint8_t* _certs[] = {certs_array};
-uint16_t cert_lengths[] = {lengths_array};
-uint16_t cert_count = {cert_count};
+uint16_t _cert_lengths[] = {lengths_array};
+uint16_t _cert_count = {cert_count};
 """
 
 header_file = "#include <stdint.h>"

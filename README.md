@@ -41,7 +41,7 @@ This is a port of [libcurl](https://curl.se/libcurl/) to WebAssembly for use in 
 - Works inside web workers without needing special permissions or headers
 - Works in all major browsers (Chromium >= 64, Firefox >= 65, Safari >= 14)
 - Has the ability to create multiple independent sessions
-- Small footprint size (672KB after compression) and low runtime memory usage
+- Small footprint size (552KB after compression) and low runtime memory usage
 - Support for Brotli and gzip compressed responses
 
 ## Building:
@@ -53,15 +53,15 @@ cd libcurl.js/client
 ```
 Make sure you have emscripten, git, and the various C build tools installed. The only OS supported for building libcurl.js is Linux. On Debian-based systems, you can run the following command to install all the dependencies:
 ```
-sudo apt install make cmake emscripten autoconf automake libtool pkg-config wget xxd jq
+sudo apt install python3 make cmake emscripten autoconf automake libtool pkg-config wget xxd jq
 ```
-Emscripten versions 3.1.6 and 3.1.72 have been tested and known to work. 
+Emscripten versions 3.1.6 and 3.1.72 have been tested and known to work. If you are using Debian 12 or Ubuntu 24.04, Emscripten 3.1.6 is what is provided in the distro's repository. 
 
 The build script will generate `client/out/libcurl.js` as well as `client/out/libcurl.mjs`, which is an ES6 module. You can supply the following arguments to the build script to control the build:
 - `release` - Use all optimizations.
 - `single_file` - Include the WASM binary in the outputted JS using base64. 
-- `asan` - Use the Clang AddressSanitizer to catch possible memory bugs
-- `all` - Build twice, once normally, and once as a single file.
+- `asan` - Use the Clang AddressSanitizer to catch possible memory bugs during runtime.
+- `all` - Build twice, once normally, and once as a single file. This enables the release mode.
 
 Note: non-release builds will have the `-dev` version suffix and ASan builds will have the `-asan` suffix.
 
@@ -312,4 +312,4 @@ This project is licensed under the [GNU LGPL v3](https://www.gnu.org/licenses/lg
 > 
 > \- From [tldrlegal.com](https://www.tldrlegal.com/license/gnu-lesser-general-public-license-v3-lgpl-3)
 
-Do note that the code present in the Wisp server submodule is a seperate project and is still licensed under the GNU AGPL v3. The server-related code in this repository is just a wrapper to run the Wisp server.
+Do note that the code present in the Wisp server submodule is a separate project and is still licensed under the GNU AGPL v3. The server-related code in this repository is just a wrapper to run the Wisp server.

@@ -7,14 +7,13 @@
 #include "curl/easy.h"
 #include "curl/multi.h"
 
-#include "cacert.h"
 #include "util.h"
 #include "types.h"
 
 void finish_request(CURLMsg *curl_msg);
 void forward_headers(struct RequestInfo *request_info);
 
-struct curl_blob cacert_blob;
+extern struct curl_blob cacert_blob;
 
 size_t write_function(char *data, size_t size, size_t nmemb, struct RequestInfo *request_info) {
   size_t real_size = size * nmemb;
@@ -81,15 +80,4 @@ void finish_request(CURLMsg *curl_msg) {
 
 void request_set_proxy(CURL* http_handle, const char* proxy_url) {
   curl_easy_setopt(http_handle, CURLOPT_PROXY, proxy_url);
-}
-
-unsigned char* get_cacert() {
-  return _cacert_pem;
-}
-
-void init_curl() {
-  curl_global_init(CURL_GLOBAL_DEFAULT);
-  cacert_blob.data = _cacert_pem;
-  cacert_blob.len = _cacert_pem_len;
-  cacert_blob.flags = CURL_BLOB_NOCOPY;
 }

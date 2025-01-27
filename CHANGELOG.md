@@ -1,5 +1,12 @@
 # Libcurl.js Changelog:
 
+## v0.7.0 (1/24/25):
+- Switch to Mbed TLS for the TLS backend
+  - This fixes some TLS certificate errors that were occurring on some sites with WolfSSL
+- Fix a null pointer dereference bug with websockets
+- Store the CA certificates bundle more efficiently 
+- The WASM size has decreased from 1.4MB to 1.2MB
+
 ## v0.6.22 (1/10/25):
 - Remove Emscripten's maximum socket limit of 64 
 - Fix handling of sub-protocols in Websockets

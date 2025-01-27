@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>libcurl.js - A port of libcurl to WASM for the web.</title>
+
+    <link rel="stylesheet" href="./main.css">
+    <script src="./main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/libcurl.js@latest/libcurl_full.js" defer></script>
+  </head>
+
+  <body>
+    <div class="center">
+      <h1 id="title">libcurl.js</h1>
+    </div>
+    <p>libcurl.js is a port of the popular <a href="https://curl.se/libcurl/">libcurl</a> C library to WASM for use on the web. It allows you send encrypted HTTPS requests from the browser, without the proxy server being able to read the contents.</p>
+    <p>See the <a href="https://github.com/ading2210/libcurl.js">Github repository</a> for more information.</p>
+
+
+    <h2>Features:</h2>
+    <ul style="margin-top: 4px;">
+      <li>Provides an API compatible with the browser's native Fetch API</li>
+      <li>End to end encryption between the browser and the destination server</li>
+      <li>Support for up to TLS 1.3</li>
+      <li>Support for tunneling HTTP/2 connections</li>
+      <li>Support for proxying encrypted WebSockets</li>
+      <li>Bypass CORS restrictions without compromising on privacy</li>
+      <li>High performance and low latency via multiplexing and reusing open connections</li>
+      <li>Works in all major browsers (Chromium >= 64, Firefox >= 65, Safari >= 14)</li>
+      <li>Small footprint size (552KB after compression) and low runtime memory usage</li>
+      <li>Support for Brotli and gzip compressed responses</li>
+    </ul>
+
+    <h2>Live Demo:</h2>
+    <form action="javascript:start_request();" id="request_form">
+      <label for="url">URL:</label>
+      <input type="text" id="url" name="url" value="https://httpbin.org/anything">
+      <input class="button" type="submit" value="Submit">
+    </form>
+    <p id="status_text"><br><i>Waiting for libcurl.js to load...</i></p>
+    <table id="main_table">
+      <tr>
+        <th>Request Content:</th>
+        <th>Network Traffic:</th>
+      </tr>
+      <tr>
+        <td class="list_cell">
+          <pre id="request_info"></pre>
+        </td>
+        <td class="list_cell">
+          <table id="network_data"></table>
+        </td>
+      </tr>
+      <tr>
+        <th colspan="2">Libcurl Output:</th>
+      </tr>
+      <tr>
+        <td class="list_cell" colspan="2">
+          <pre id="libcurl_output"></pre>
+        </td>
+      </tr>
+    </table>
+    
+    <h2 style="margin-top: 0px;">Explanation:</h2>
+    <p>libcurl.js works by proxying TCP sockets, rather than HTTP requests. The <a href="https://github.com/MercuryWorkshop/wisp-protocol">Wisp protocol</a> is used to multiplex the TCP connections over a single websocket for minimal latency. The <a href="https://curl.se/libcurl/">libcurl</a> C library is used as an HTTP client, and <a href="https://github.com/Mbed-TLS/mbedtls">Mbed TLS</a> is used to facilitate encryption.</p>
+    <p>If the destination server supports HTTPS, the connection will be end-to-end encrypted using TLS. Only the encrypted TLS traffic is carried over the websocket, so the proxy server knows nothing about your requests except for the hostname.</p>
+    <p>This avoids the privacy issues of a traditional CORS proxy which can steal your credentials and private information. With libcurl.js and Wisp, you don't need to trust the proxy server to keep your requests secure.</p>
+
+    <h2>Javascript API:</h2>
+    <p>Including libcurl.js in your web pages is as simple as loading the JS bundle using a script tag.</p>
+    <pre>&lt;script src="https://cdn.jsdelivr.net/npm/libcurl.js@latest/libcurl_full.js" defer>&lt;/script></pre>
+    <p>Then, after setting the Websocket proxy URL, you can use the API to its full potential.</p>
+    <pre>document.addEventListener("libcurl_load", ()=>{
+  libcurl.set_websocket(`wss://wisp.mercurywork.shop/`);
+  console.log("libcurl.js ready!");
+});</pre>
+    <p>More documentation and examples are available on the <a href="https://github.com/ading2210/libcurl.js">project README</a>.</p>
+
+    <h2>License:</h2>
+    <p>This project was written by <a href="https://github.com/ading2210">ading2210</a> and it is licensed under the <a href="https://www.gnu.org/licenses/lgpl-3.0.html">GNU LGPL v3.</a></p>
+    <blockquote>
+      This license is mainly applied to libraries. You may copy, distribute and modify the software provided that modifications are described and licensed for free under LGPL. Derivatives works (including modifications or anything statically linked to the library) can only be redistributed under LGPL, but applications that use the library don't have to be.
+      <br><br>
+      - From <a href="https://www.tldrlegal.com/license/gnu-lesser-general-public-license-v3-lgpl-3">tldrlegal.com</a>
+    </blockquote>
+  </body>
+</html>

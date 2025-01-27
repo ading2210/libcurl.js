@@ -304,6 +304,7 @@ For a full list of server arguments, see the [wisp-server-python documentation](
   - `wisp_client` - A submodule for the Wisp client library.
 - `server` - Contains all the server-side code for running the websocket proxy server. 
   - `wisp_server` - A submodule for the Python Wisp server.
+- `server` - Contains the HTML source for the project's main website.
 
 ## Copyright:
 This project is licensed under the [GNU LGPL v3](https://www.gnu.org/licenses/lgpl-3.0.html).

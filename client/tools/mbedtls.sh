@@ -15,7 +15,7 @@ rm -rf mbedtls
 git clone -b mbedtls-3.6.2 --recursive --depth=1 https://github.com/Mbed-TLS/mbedtls mbedtls
 cd mbedtls
 
-emmake make CFLAGS="-Oz" no_test -j$CORE_COUNT
+emmake make CFLAGS="-O3" no_test -j$CORE_COUNT
 make DESTDIR="$PREFIX" install
 
 rm -rf $PREFIX/bin

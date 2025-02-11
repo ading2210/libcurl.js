@@ -14,7 +14,7 @@ NGHTTP2_PREFIX=$(realpath build/nghttp2-wasm)
 
 cd build
 rm -rf curl
-git clone -b curl-8_11_1 --depth=1 https://github.com/curl/curl
+git clone -b curl-8_12_0 --depth=1 https://github.com/curl/curl
 cd curl
 
 autoreconf -fi
@@ -27,7 +27,7 @@ emconfigure ./configure --host i686-linux \
   --with-mbedtls=$MBEDTLS_PREFIX --with-zlib=$ZLIB_PREFIX \
   --with-brotli=$BROTLI_PREFIX --with-nghttp2=$NGHTTP2_PREFIX
 
-emmake make -j$CORE_COUNT CFLAGS="-Oz" LIBS="-lbrotlicommon"
+emmake make -j$CORE_COUNT CFLAGS="-O3" LIBS="-lbrotlicommon"
 
 rm -rf $PREFIX
 mkdir -p $PREFIX/include

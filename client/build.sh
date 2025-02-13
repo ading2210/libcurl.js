@@ -38,7 +38,7 @@ EXPORTED_FUNCS="${EXPORTED_FUNCS:1}"
 #compile options
 RUNTIME_METHODS="addFunction,removeFunction,allocate,ALLOC_NORMAL"
 COMPILER_OPTIONS="-o $MODULE_FILE -lcurl -lmbedtls -lmbedcrypto -lmbedx509 -lcjson -lz -lbrotlidec -lbrotlicommon -lnghttp2 -I $INCLUDE_DIR -L $LIB_DIR"
-EMSCRIPTEN_OPTIONS="-lwebsocket.js -sENVIRONMENT=worker,web -sASSERTIONS=1 -sLLD_REPORT_UNDEFINED -sALLOW_TABLE_GROWTH -sALLOW_MEMORY_GROWTH -sNO_EXIT_RUNTIME -sEXPORTED_FUNCTIONS=$EXPORTED_FUNCS -sEXPORTED_RUNTIME_METHODS=$RUNTIME_METHODS"
+EMSCRIPTEN_OPTIONS="-lwebsocket.js -sENVIRONMENT=node,worker,web -sASSERTIONS=1 -sLLD_REPORT_UNDEFINED -sALLOW_TABLE_GROWTH -sALLOW_MEMORY_GROWTH -sNO_EXIT_RUNTIME -sEXPORTED_FUNCTIONS=$EXPORTED_FUNCS -sEXPORTED_RUNTIME_METHODS=$RUNTIME_METHODS"
 
 #clean output dir
 rm -rf $OUT_DIR
@@ -122,5 +122,6 @@ sed -i "/__extra_libraries__/r $WISP_CLIENT/wisp.js" $OUT_FILE
 python3 tools/patch_js.py $FRAGMENTS_DIR $OUT_FILE
 
 #generate es6 module
-cp $OUT_FILE $ES6_FILE
-sed -i 's/const libcurl = /export const libcurl = /' $ES6_FILE
+cp "$OUT_FILE" "$ES6_FILE"
+sed -i 's/export const libcurl = /const libcurl = /' "$OUT_FILE"
+sed -i 's/export default libcurl;//' "$OUT_FILE"

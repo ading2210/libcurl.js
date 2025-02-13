@@ -5,7 +5,7 @@ Licensed under the GNU LGPL v3. See https://github.com/ading2210/libcurl.js
 */
 
 //everything is wrapped in a function to prevent emscripten from polluting the global scope
-const libcurl = (function() {
+export const libcurl = (function() {
 
 //emscripten compiled code is inserted here
 /* __emscripten_output__ */
@@ -20,6 +20,8 @@ var api = null;
 var main_session = null;
 const libcurl_version = "__library_version__";
 const wisp_version = "__wisp_version__";
+
+const WSImpl = (typeof process !== "undefined" && typeof WebSocket === "undefined") ? require("ws").WebSocket : WebSocket;
 
 function check_loaded(check_websocket) {
   if (!wasm_ready) {
@@ -150,3 +152,5 @@ api = {
 return api;
 
 })()
+
+export default libcurl;

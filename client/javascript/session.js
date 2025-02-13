@@ -186,7 +186,7 @@ class CurlSession {
       try {
         stream_controller.close();
       }
-      catch {}
+      catch (e) {}
       end_callback(error);
     }
 

@@ -39,7 +39,7 @@ This is a port of [libcurl](https://curl.se/libcurl/) to WebAssembly for use in 
 - Use raw TLS sockets in the browser
 - Custom network transport support
 - Works inside web workers without needing special permissions or headers
-- Works in all major browsers (Chromium >= 64, Firefox >= 65, Safari >= 14)
+- Works in all major browsers (Chromium >= 64, Firefox >= 65, Safari >= 14) and Node.js
 - Has the ability to create multiple independent sessions
 - Small footprint size (552KB after compression) and low runtime memory usage
 - Support for Brotli and gzip compressed responses
@@ -107,7 +107,7 @@ libcurl.onload = () => {
 
 Once loaded, there will be a `window.libcurl` object which includes all the API functions. The `libcurl.ready` property can also be used to know if the WASM has loaded. 
 
-There are also ES6 modules available if you are using a bundler. The `libcurl.mjs` and `libcurl_full.mjs` files provide this functionality, with the former being set as the entry point for the NPM package. 
+There are also ES6 modules available if you are using a bundler or running it in NodeJS. The `libcurl.mjs` and `libcurl_full.mjs` files provide this functionality, with the former being set as the entry point for the NPM package. 
 ```js
 //import the regular version
 import { libcurl } from "libcurl.js"; 

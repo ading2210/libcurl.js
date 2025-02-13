@@ -16,14 +16,14 @@ for fragment_file in fragments_path.iterdir():
   matches = re.findall(match_regex, fragment_text, re.S)
 
   for mode, patch_regex, patch_text, _ in matches:
-    fragment_matches = re.findall(patch_regex, target_text)
+    fragment_matches = re.findall(patch_regex, target_text, flags=re.S)
     if not fragment_matches:
       print(f"warning: regex did not match anything for '{patch_regex}'");
     if mode == "DELETE":
-      target_text = re.sub(patch_regex, "", target_text)
+      target_text = re.sub(patch_regex, "", target_text, flags=re.S)
     elif mode == "REPLACE":
-      target_text = re.sub(patch_regex, patch_text, target_text)
+      target_text = re.sub(patch_regex, patch_text, target_text, flags=re.S)
     elif mode == "INSERT":
-      target_text = re.sub("("+patch_regex+")", r'\1'+patch_text, target_text)
+      target_text = re.sub("("+patch_regex+")", r'\1'+patch_text, target_text, flags=re.S)
 
 target_path.write_text(target_text)

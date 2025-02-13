@@ -193,7 +193,7 @@ class HTTPSession extends CurlSession {
     if (params.referrer) {
       params.headers["Referer"] = params.referrer;
     }
-    if (!params.headers["User-Agent"]) {
+    if (!params.headers["User-Agent"] && typeof navigator === "object") {
       params.headers["User-Agent"] = navigator.userAgent;
     }
     if (body && !params.headers["Content-Type"]) {

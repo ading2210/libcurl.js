@@ -12,3 +12,8 @@ var parts = addr.split("/");
 url = Module.websocket.url;
 if (!url.endsWith("/")) url += "/";
 url += parts[0] + ":" + port;
+
+/* DELETE
+var WebSocketConstructor.+?WebSocketConstructor ?= ?WebSocket;?\s*}
+*/
+

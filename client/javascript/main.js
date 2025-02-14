@@ -94,9 +94,15 @@ function load_wasm(url) {
 
   //skip this if we are running in single file mode
   if (!wasmBinaryFile || !isDataURI(wasmBinaryFile)) {
-    wasmBinaryFile = url;
+    if (ENVIRONMENT_IS_NODE) {
+      let fs = require("node:fs");
+      wasmBinary = fs.readFileSync(url);
+    }
+    else {
+      wasmBinaryFile = url;
+    }
     createWasm();
-    run();  
+    run();
   }
 
   return new Promise((resolve, reject) => {

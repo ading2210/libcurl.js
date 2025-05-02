@@ -12,7 +12,7 @@ mkdir -p $PREFIX
 
 cd build
 rm -rf mbedtls
-git clone -b mbedtls-3.6.2 --recursive --depth=1 https://github.com/Mbed-TLS/mbedtls mbedtls
+git clone -b mbedtls-3.6.3 --recursive --depth=1 https://github.com/Mbed-TLS/mbedtls mbedtls
 cd mbedtls
 
 emmake make CFLAGS="-O3" no_test -j$CORE_COUNT

@@ -183,7 +183,7 @@ The `CurlWebSocket.send` function can be used to send data to the websocket. The
 You can call `CurlWebSocket.close` to close and clean up the websocket.
 
 ```js
-let ws = new libcurl.CurlWebSocket("wss://echo.websocket.in/", [], {verbose: 1});
+let ws = new libcurl.CurlWebSocket("wss://echo.websocket.org/", [], {verbose: 1});
 ws.onopen = () => {
   console.log("ws connected!");
   ws.send("hello".repeat(100));
@@ -195,7 +195,7 @@ ws.onmessage = (data) => {
 
 You can also use the `libcurl.WebSocket` object, which works identically to the regular [WebSocket](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) object. It uses the same arguments as the simpler `CurlWebSocket` API.
 ```js
-let ws = new libcurl.WebSocket("wss://echo.websocket.in/");
+let ws = new libcurl.WebSocket("wss://echo.websocket.org/");
 ws.addEventListener("open", () => {
   console.log("ws connected!");
   ws.send("hello".repeat(128));

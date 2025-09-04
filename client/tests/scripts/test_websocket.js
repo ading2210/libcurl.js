@@ -2,7 +2,7 @@ function test() {
   let message_len = 1024;
 
   return new Promise((resolve, reject) => {
-    let ws = new libcurl.WebSocket("wss://echo.websocket.in/");
+    let ws = new libcurl.WebSocket("wss://echo.websocket.org/");
     ws.addEventListener("open", () => {
       ws.send("hello".repeat(message_len));
     });

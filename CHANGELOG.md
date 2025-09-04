@@ -1,5 +1,8 @@
 # Libcurl.js Changelog:
 
+## v0.7.2 (9/4/25):
+- Use the latest versions of Mbed TLS, curl, and nghttp2
+
 ## v0.7.1 (5/2/25):
 - Use the latest versions of Mbed TLS, curl, and nghttp2
 - Compile Mbed TLS and curl with `-O3` for better performance (however the bundle size is slightly larger as a result)

@@ -4,7 +4,7 @@
 ![npm downloads badge](https://img.shields.io/npm/dm/libcurl.js?color=ff5627&style=flat-square)
 ![jsdelivr downloads badge](https://data.jsdelivr.com/v1/package/npm/libcurl.js/badge/month)
 
-This is a port of [libcurl](https://curl.se/libcurl/) to WebAssembly for use in the browser. It provides an interface compatible with the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), allowing you to proxy HTTPS requests from the browser with full TLS encryption. Unlike previous implementations, the proxy server cannot read the contents of your requests. 
+This is a port of [libcurl](https://curl.se/libcurl/) to WebAssembly for use in the browser. It provides an interface compatible with the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), allowing you to proxy HTTPS requests from the browser with full TLS encryption. Unlike a traditional CORS proxy, the proxy server cannot read the contents of your requests. 
 
 ## Table of Contents:
 - [Features](#features)
@@ -32,8 +32,7 @@ This is a port of [libcurl](https://curl.se/libcurl/) to WebAssembly for use in 
 - Fetch compatible API
 - End to end encryption between the browser and the destination server
 - Support for up to TLS 1.3
-- Support for tunneling HTTP/2 connections 
-- Support for proxying WebSockets
+- Support for proxying HTTP/2 connections and WebSockets
 - Bypass CORS restrictions without compromising on privacy
 - Low latency via multiplexing and reusing open connections
 - Use raw TLS sockets in the browser

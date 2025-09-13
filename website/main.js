@@ -1,5 +1,3 @@
-const decoder = new TextDecoder();
-
 function from_id(id) {
   return document.getElementById(id);
 }

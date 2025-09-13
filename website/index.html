@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
-    <title>libcurl.js - A port of libcurl to WASM for the web.</title>
+    <title>libcurl.js - libcurl in WASM for end-to-end encrypted CORS proxies</title>
 
     <link rel="stylesheet" href="./main.css">
     <script src="./main.js"></script>
@@ -14,18 +14,16 @@
     <div class="center">
       <h1 id="title">libcurl.js</h1>
     </div>
-    <p>libcurl.js is a port of the popular <a href="https://curl.se/libcurl/">libcurl</a> C library to WASM for use on the web. It allows you send encrypted HTTPS requests from the browser, without the proxy server being able to read the contents.</p>
-    <p>See the <a href="https://github.com/ading2210/libcurl.js">Github repository</a> for more information.</p>
-
+    <p>libcurl.js is a port of the popular <a href="https://curl.se/libcurl/">libcurl</a> C library to WASM for use on the web. It allows you send end-to-end encrypted HTTPS requests from the browser, bypassing CORS without the proxy server being able to read request contents.</p> 
+    <p>See the <a href="https://github.com/ading2210/libcurl.js">Github repository</a> for more information. Packages are <a href="https://www.npmjs.com/package/libcurl.js">available on NPM.</a></p>
 
     <h2>Features:</h2>
     <ul style="margin-top: 4px;">
       <li>Provides an API compatible with the browser's native Fetch API</li>
-      <li>End to end encryption between the browser and the destination server</li>
-      <li>Support for up to TLS 1.3</li>
-      <li>Support for tunneling HTTP/2 connections</li>
-      <li>Support for proxying encrypted WebSockets</li>
+      <li>End-to-end encryption between the browser and the destination server</li>
       <li>Bypass CORS restrictions without compromising on privacy</li>
+      <li>Support for up to TLS 1.3</li>
+      <li>Support for proxying HTTP/2 connections and WebSockets</li>
       <li>High performance and low latency via multiplexing and reusing open connections</li>
       <li>Works in all major browsers (Chromium >= 64, Firefox >= 65, Safari >= 14)</li>
       <li>Small footprint size (552KB after compression) and low runtime memory usage</li>
@@ -35,14 +33,14 @@
     <h2>Live Demo:</h2>
     <form action="javascript:start_request();" id="request_form">
       <label for="url">URL:</label>
-      <input type="text" id="url" name="url" value="https://httpbin.org/anything">
+      <input type="text" id="url" name="url" value="https://example.com/">
       <input class="button" type="submit" value="Submit">
     </form>
     <p id="status_text"><br><i>Waiting for libcurl.js to load...</i></p>
     <table id="main_table">
       <tr>
         <th>Request Content:</th>
-        <th>Network Traffic:</th>
+        <th>WebSocket Network Traffic:</th>
       </tr>
       <tr>
         <td class="list_cell">
@@ -63,18 +61,22 @@
     </table>
     
     <h2 style="margin-top: 0px;">Explanation:</h2>
-    <p>libcurl.js works by proxying TCP sockets, rather than HTTP requests. The <a href="https://github.com/MercuryWorkshop/wisp-protocol">Wisp protocol</a> is used to multiplex the TCP connections over a single websocket for minimal latency. The <a href="https://curl.se/libcurl/">libcurl</a> C library is used as an HTTP client, and <a href="https://github.com/Mbed-TLS/mbedtls">Mbed TLS</a> is used to facilitate encryption.</p>
-    <p>If the destination server supports HTTPS, the connection will be end-to-end encrypted using TLS. Only the encrypted TLS traffic is carried over the websocket, so the proxy server knows nothing about your requests except for the hostname.</p>
-    <p>This avoids the privacy issues of a traditional CORS proxy which can steal your credentials and private information. With libcurl.js and Wisp, you don't need to trust the proxy server to keep your requests secure.</p>
+    <p>In a traditional CORS proxy, your browser sends an HTTP request to a proxy server, which then reads the contents and sends a new request to the destination server. However, this is terrible for privacy, because the proxy server read the contents of the forwarded requests in plain text, which might include API keys or other secrets.</p>
+    <p>On the other hand, <b>libcurl.js is a complete HTTPS and TLS client</b>, which runs inside Javascript and WebAssembly on the browser. It performs TLS encryption locally in the browser, and sends the encrypted data over a Websocket to a proxy server, which forwards the data to a TCP socket. This ensures that there is end-to-end encryption between your browser and the destination server, and that the proxy server cannot see the contents of your requests.</p>
+    <p>The proxy server only deals with the data in the underlying TCP socket. That data will be encrypted with TLS until it gets to the destination server. Thus, you don't need to fully trust the proxy sever to use it safely.</p>
+    <p>The <a href="https://github.com/MercuryWorkshop/wisp-protocol">Wisp protocol</a> is used to multiplex the TCP connections over a single WebSocket. It is a very simple and lightweight protocol which minimizes latency. The <a href="https://curl.se/libcurl/">libcurl</a> C library is used as an HTTP client, and <a href="https://github.com/Mbed-TLS/mbedtls">Mbed TLS</a> is used to facilitate encryption. Emscripten is used to compile these C libraries to WebAssembly.</p>
 
     <h2>Javascript API:</h2>
-    <p>Including libcurl.js in your web pages is as simple as loading the JS bundle using a script tag.</p>
+    <p>Including libcurl.js in your webpages is as simple as loading the JS bundle using a script tag.</p>
     <pre>&lt;script src="https://cdn.jsdelivr.net/npm/libcurl.js@latest/libcurl_full.js" defer>&lt;/script></pre>
-    <p>Then, after setting the Websocket proxy URL, you can use the API to its full potential.</p>
-    <pre>document.addEventListener("libcurl_load", ()=>{
-  libcurl.set_websocket(`wss://wisp.mercurywork.shop/`);
-  console.log("libcurl.js ready!");
-});</pre>
+    <p>Or you can use the ES6 module on NPM:</p>
+    <pre>import { libcurl } from "libcurl.js/bundled";</pre>
+    <p>First, set the Wisp proxy URL. This example uses our <a href="https://wisp.mercurywork.shop/">public Wisp server</a>:</p>
+    <pre>libcurl.set_websocket(`wss://wisp.mercurywork.shop/`);</pre>
+    <p>Then, you can perform HTTPS requests using a fetch-compatible API:</p>
+    <pre>var r = await libcurl.fetch("https://ading.dev");
+console.log(await r.text());</pre>
+    <p>Try opening the browser console on this page and running the above code.</p>
     <p>More documentation and examples are available on the <a href="https://github.com/ading2210/libcurl.js">project README</a>.</p>
 
     <h2>License:</h2>

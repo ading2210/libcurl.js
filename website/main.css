@@ -90,6 +90,9 @@ table, th, td {
 #network_data {
   width: 100%;
 }
+#network_data pre {
+  line-height: 1;
+}
 #status_text {
   height: 0px;
   margin-top: 0px;

@@ -1,6 +1,6 @@
 async function test() {
   let payload = "hello".repeat(100);
-  let r = await libcurl.fetch("https://httpbin.org/anything", {
+  let r = await libcurl.fetch("https://httpbin.io/anything", {
     method: "POST",
     body: new Blob([payload], {type: "text/plain"})
   });

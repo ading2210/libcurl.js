@@ -14,11 +14,8 @@ NGHTTP2_PREFIX=$(realpath build/nghttp2-wasm)
 
 cd build
 rm -rf curl
-git clone -b 8.17.0-patched --depth=1 https://github.com/ading2210/curl
+git clone -b 8.23.0-patched --depth=1 https://github.com/ading2210/curl
 cd curl
-
-#emscripten does not support the pipe2 syscall
-sed -i '/pipe2/d' configure.ac
 
 autoreconf -fi
 emconfigure ./configure --host i686-linux \

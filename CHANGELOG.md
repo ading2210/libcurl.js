@@ -1,5 +1,10 @@
 # Libcurl.js Changelog:
 
+## v0.7.5 (10/21/26):
+- Use the latest versions of curl, cJSON, and nghttp2
+- Update CA certificates 
+- Fix security issues from compromised CA certificates
+
 ## v0.7.4 (12/1/25):
 - Export `libcurl.wasm` in the NPM package ([PR #8](https://github.com/ading2210/libcurl.js/pull/8))
 - Allow requests to `.onion` domains (overriding [upstream curl behavior](https://github.com/curl/curl/discussions/11125))

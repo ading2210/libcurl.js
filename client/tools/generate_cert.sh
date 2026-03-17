@@ -12,7 +12,7 @@ CACERT_HEADER="$CURL_PREFIX/include/cacert.h"
 CACERT_DIR="$(dirname "$CACERT_FILE")"
 REPLACE_STR="$(echo "$CACERT_DIR" | tr '/-' '_')"
 
-if [ ! -f "$CACERT_FILE" ]; then
+if [ ! -f "$CACERT_HEADER" ]; then
   wget "https://curl.se/ca/cacert.pem" -O "$CACERT_FILE"
   python3 tools/gen_cert.py "$CACERT_FILE" > "$CACERT_HEADER"
 fi

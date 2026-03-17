@@ -86,8 +86,8 @@ If you are using the single file version (`libcurl_full.js`), the `libcurl.load_
 
 Alternatively, prebuilt versions can be found on NPM and jsDelivr. You can use the [following URLs](https://cdn.jsdelivr.net/npm/libcurl.js@latest/) to load libcurl.js from a third party CDN.
 ```
-https://cdn.jsdelivr.net/npm/libcurl.js@0.7.1/libcurl.js
-https://cdn.jsdelivr.net/npm/libcurl.js@0.7.1/libcurl.wasm
+https://cdn.jsdelivr.net/npm/libcurl.js@0.7.5/libcurl.js
+https://cdn.jsdelivr.net/npm/libcurl.js@0.7.5/libcurl.wasm
 ```
 
 To know when libcurl.js has finished loading, you can use the `libcurl_load` DOM event. The `libcurl_abort` event will trigger if the Emscripten runtime gets aborted due to a critical error. The `libcurl.events` object contains an `EventTarget` where these events will also be emitted. 
@@ -321,5 +321,3 @@ This project is licensed under the [GNU LGPL v3](https://www.gnu.org/licenses/lg
 > This license is mainly applied to libraries. You may copy, distribute and modify the software provided that modifications are described and licensed for free under LGPL. Derivatives works (including modifications or anything statically linked to the library) can only be redistributed under LGPL, but applications that use the library don't have to be.
 > 
 > \- From [tldrlegal.com](https://www.tldrlegal.com/license/gnu-lesser-general-public-license-v3-lgpl-3)
-
-Do note that the code present in the Wisp server submodule is a separate project and is still licensed under the GNU AGPL v3. The server-related code in this repository is just a wrapper to run the Wisp server.
